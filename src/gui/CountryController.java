@@ -1,9 +1,5 @@
 package gui;
 
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.Comparator;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -13,26 +9,35 @@ import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 import main.Country;
-import main.Product;
 import main.GoodsStorage;
+import main.Product;
 import main.Report;
 
-public class GUICountry {
-    GridPane grid;
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.Comparator;
 
-    void addUniChart(final Report inReport, final Country inCountry, String dataField, int column, int row, String name) throws ReflectiveOperationException, SecurityException {
+public class CountryController extends ChartsController {
+    private final Report report;
+    private final Scene scene;
+    private Country country;
+    private GridPane grid;
+
+    public Scene getScene() {
+        return scene;
+    }
+
+    private void addUniChart(String dataField, int column, int row, String name) throws ReflectiveOperationException, SecurityException {
         ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
         //pieChartData.setAll(country.storage);
 
         final Class[] subCalses = GoodsStorage.class.getClasses();
 
-        Comparator comparator = null;
+        Comparator<GoodsStorage> comparator = null;
 
         if (dataField.equalsIgnoreCase("actualSupply")) comparator = new GoodsStorage.actualSupplySort();
         if (dataField.equalsIgnoreCase("export")) comparator = new GoodsStorage.exportSort();
@@ -43,13 +48,13 @@ public class GUICountry {
 
         //GoodsStorage.actualSupply comparator= new GoodsStorage.actualSupply();
 
-        Collections.sort(inCountry.storage, comparator);
+        (country.storage).sort(comparator);
 
 
         final Field storageData = GoodsStorage.class.getField(dataField);
         Field countryData = Country.class.getField(dataField);
 
-        for (GoodsStorage everyGood : inCountry.storage) {
+        for (GoodsStorage everyGood : country.storage) {
 
             if ((float) storageData.get(everyGood) * everyGood.item.price > 0) {
 
@@ -61,7 +66,7 @@ public class GUICountry {
         //Collections.sort(pieChartData,actualSupply);
 
         final PieChart chart = new PieChart(pieChartData);
-        chart.setTitle(name + " of " + inCountry.getOfficialName() + " (" + (long) countryData.getFloat(inCountry) + "£)");
+        chart.setTitle(name + " of " + country.getOfficialName() + " (" + (long) countryData.getFloat(country) + "£)");
         //chart.setScaleX(0.6);
         //chart.setScaleY(0.6);
         //chart.setPrefSize(300, 300);
@@ -80,7 +85,7 @@ public class GUICountry {
                         public void handle(MouseEvent e) {
                             //caption.setTranslateX(e.getSceneX());
                             // caption.setTranslateY(e.getSceneY());
-                            GoodsStorage thisCountry = inCountry.findStorage(data.getName());
+                            GoodsStorage thisCountry = country.findStorage(data.getName());
                             if (thisCountry != null) {
                                 String toFill = "failed to found item...";
                                 try {
@@ -106,11 +111,12 @@ public class GUICountry {
                         @Override
                         public void handle(MouseEvent e) {
 
-                            Product foundProduct = inReport.findProduct(data.getName());
+                            Product foundProduct = report.findProduct(data.getName());
                             if (foundProduct != null) {
-                                GUIGoods goodsChart = new GUIGoods(inReport, inReport.countryList, foundProduct);
+                                ProductController goodsChart = new ProductController(report, foundProduct);
+                                //todo
 
-                            } else caption.setText("inReport.findProduct(data.getName() returned NULL");
+                            } else caption.setText("report.findProduct(data.getName() returned NULL");
                         }
                     });
         }
@@ -118,12 +124,9 @@ public class GUICountry {
         grid.add(caption, column, row + 1);
     }
 
-    GUICountry(final Report inReport, final Country inCountry) {
-
-        Main.countryStage = new Stage();
-        Main.countryStage.setTitle(inCountry.getOfficialName() + " - Country window");
-        Main.countryStage.getIcons().add(new Image("/flags/EST.png")); /* Cause I'm Estonian, thats why */
-
+    CountryController(final Report report, final Country country) {
+        this.report = report;
+        this.country = country;
 
         grid = new GridPane();
         grid.setAlignment(Pos.TOP_CENTER);
@@ -131,16 +134,16 @@ public class GUICountry {
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
 
-        //addSupplyChart(inReport, inCountry);
-        //AddExportChart(inReport, inCountry);
+        //addSupplyChart(report, country);
+        //AddExportChart(report, country);
         try {
-            addUniChart(inReport, inCountry, "actualSupply", 0, 0, "Production");
-            addUniChart(inReport, inCountry, "actualDemand", 0, 2, "Consumption");
-            addUniChart(inReport, inCountry, "export", 1, 0, "Export");
-            addUniChart(inReport, inCountry, "imported", 1, 2, "Import");
-            //addUniChart(inReport, inCountry, "MaxDemand",2,0, "MaxDemand");
-            //addUniChart(inReport, inCountry, "savedCountrySupply",2,0, "Total Supply");
-            addUniChart(inReport, inCountry, "savedCountrySupply", 0, 4, "Total Supply");
+            addUniChart("actualSupply", 0, 0, "Production");
+            addUniChart("actualDemand", 0, 2, "Consumption");
+            addUniChart("export", 1, 0, "Export");
+            addUniChart("imported", 1, 2, "Import");
+            //addUniChart(report, country, "MaxDemand",2,0, "MaxDemand");
+            //addUniChart(report, country, "savedCountrySupply",2,0, "Total Supply");
+            addUniChart("savedCountrySupply", 0, 4, "Total Supply");
         } catch (SecurityException | ReflectiveOperationException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -157,16 +160,7 @@ public class GUICountry {
 		scrollPane.autosize();
 		grid.autosize();*/
 
-
-        //Scene scene = new Scene(grid, 650, 550);
-        Scene scene = new Scene(scrollPane, 1200, 950);
-
-
-        //grid.autosize();
-        //scrollPane.autosize();
-
-        Main.countryStage.setScene(scene);
-        Main.countryStage.show();
+        scene = new Scene(scrollPane, 1200, 950);
     }
 }
 

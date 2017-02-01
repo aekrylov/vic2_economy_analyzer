@@ -6,7 +6,7 @@
             xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="gui.WindowController">
   <!-- TODO Add Nodes -->
   <ScrollPane id="ScrollPane" layoutX="14.0" layoutY="167.0" prefViewportHeight="520.0" prefViewportWidth="1173.0">
-    <TableView id="table" fx:id="mainTable" editable="true" onMouseClicked="#onTableClicked" prefHeight="520.0"
+    <TableView id="table" fx:id="mainTable" editable="true" prefHeight="520.0"
                prefWidth="1173.0" style="&#10;&#10;" tableMenuButtonVisible="true">
       <columns>
         <TableColumn prefWidth="276.0" text="Country" fx:id="colCountry"/>
@@ -74,7 +74,7 @@
       <Tooltip text="Like C:/Games/Victoria II/mod/SiR"/>
     </tooltip>
   </Label>
-  <TextField id="tfModName" fx:id="tfModPatch" layoutX="232.0" layoutY="84.0" prefWidth="860.0"
+  <TextField id="tfModName" fx:id="tfModPath" layoutX="232.0" layoutY="84.0" prefWidth="860.0"
   />
   <Button id="btnBrowseLocal" fx:id="btnBrowseMod" alignment="BASELINE_RIGHT" layoutX="1108.0" layoutY="84.0"
           mnemonicParsing="false" onAction="#onBrowseMod" text="Browse">

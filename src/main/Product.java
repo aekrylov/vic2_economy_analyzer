@@ -72,11 +72,7 @@ public class Product {
 		
 	}
 	public float getOverproduced() {
-		float result=0;
-		//if (consumption==0)result=Float.NaN;
-		//else result=100-realSupply/consumption*100;
-		result=supply/affordable*100;
-		return result;
+		return supply/affordable*100;
 	}
 	/**global*/
 	public float price=0;

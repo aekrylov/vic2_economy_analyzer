@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
-<TableView fx:id="goodsTable" editable="true" onMouseClicked="#onTableClicked" prefHeight="600.0" prefWidth="1150.0" tableMenuButtonVisible="true" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="gui.GoodsListController">
+<TableView fx:id="productsTable" editable="true" prefHeight="600.0" prefWidth="1150.0" tableMenuButtonVisible="true" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="gui.GoodsListController">
   <columns>
     <TableColumn prefWidth="131.0" text="Name" fx:id="colName" />
     <TableColumn prefWidth="113.0" text="Supply" fx:id="colRealSupply" />

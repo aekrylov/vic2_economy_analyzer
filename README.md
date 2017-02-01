@@ -7,7 +7,7 @@ Based on old [Nashetovich's code](http://oldforum.paradoxplaza.com/forum/showthr
 
 ## Usage
 
->You should use **StarMe.bat** otherwise you can face "lack of memory" error.
+>You should use **StartMe.bat** otherwise you can face "lack of memory" error.
 >
 >Select patch and press "Load". I use "Load" on autosave.v2 each month So I see how world is.
 
