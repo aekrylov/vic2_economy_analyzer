@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane id="idControl" minWidth="1185.0" prefHeight="800.0" prefWidth="1200.0"
+            xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="gui.WindowController">
+  <!-- TODO Add Nodes -->
+  <ScrollPane id="ScrollPane" layoutX="14.0" layoutY="167.0" prefViewportHeight="520.0" prefViewportWidth="1173.0">
+    <TableView id="table" fx:id="mainTable" editable="true" onMouseClicked="#onTableClicked" prefHeight="520.0"
+               prefWidth="1173.0" style="&#10;&#10;" tableMenuButtonVisible="true">
+      <columns>
+        <TableColumn prefWidth="276.0" text="Country" fx:id="colCountry"/>
+        <TableColumn id="colPopulation" prefWidth="114.0"
+                     style="&#10;&#10;&#10;&#10;&#10;" text="Population" fx:id="colPopulation"/>
+        <TableColumn prefWidth="95.0" text="GDP" fx:id="colGDP"/>
+        <TableColumn prefWidth="126.0" style="&#10;&#10;" text="Consumption"
+                     fx:id="colConsumption"/>
+        <TableColumn prefWidth="93.0" text="Export" fx:id="colExport"/>
+        <TableColumn prefWidth="84.0" text="Import" fx:id="colImport"/>
+        <TableColumn prefWidth="147.0" text="GDP per capita" fx:id="colGDPPer"/>
+        <TableColumn prefWidth="107.0" text="GDP place" fx:id="colGDPPlace"/>
+        <TableColumn prefWidth="112.0" text="GDP part %" fx:id="colGDPPart"/>
+        <TableColumn prefWidth="131.0" text="Gold income" fx:id="colGoldIncome"/>
+        <TableColumn prefWidth="47.0" text="Workforce" fx:id="colWorkforce"/>
+        <TableColumn prefWidth="18.0" text="Employed" fx:id="colEmployment"/>
+        <TableColumn prefWidth="137.0" text="Unemployment">
+          <columns>
+            <TableColumn text="RGO"
+                         fx:id="colUnemploymentRate"/>
+            <TableColumn text="Factory"
+                         fx:id="colUnemploymentRateFactory"/>
+          </columns>
+        </TableColumn>
+      </columns>
+    </TableView>
+  </ScrollPane>
+  <TextField id="saveGameTextField" fx:id="tfSaveGame" layoutX="232.0" layoutY="14.0"
+             prefWidth="860.0"/>
+  <Button id="btnTest" fx:id="btnLoad" defaultButton="true" layoutX="14.0" layoutY="13.0" mnemonicParsing="false"
+          onAction="#onLoad" prefHeight="62.0" prefWidth="86.0" text="Load!"/>
+  <TextField id="saveGameTextField" fx:id="tfLocalization" alignment="BOTTOM_LEFT" layoutX="232.0" layoutY="49.0"
+             prefWidth="860.0"/>
+  <Button id="btn" fx:id="btnBrowseSave" layoutX="1108.0" layoutY="13.0" mnemonicParsing="false"
+          onAction="#onBrowseSave" text="Browse">
+    <tooltip>
+      <Tooltip text="Like Romania1914_08_01.v2"/>
+    </tooltip>
+  </Button>
+  <Button fx:id="btnBrowseLocal" alignment="CENTER_RIGHT" layoutX="1108.0" layoutY="49.0" mnemonicParsing="false"
+          onAction="#onBrowseLocal" text="Browse">
+    <tooltip>
+      <Tooltip text="Like C:/Games/Victoria II/"/>
+    </tooltip>
+  </Button>
+  <Label layoutX="107.0" layoutY="14.0" text="Savegame path:">
+    <tooltip>
+      <Tooltip text="Like Romania1914_08_01.v2"/>
+    </tooltip>
+  </Label>
+  <Label layoutX="107.0" layoutY="52.0" text="Game folder:">
+    <tooltip>
+      <Tooltip text="Like C:/Games/Victoria II/"/>
+    </tooltip>
+  </Label>
+  <TextField alignment="CENTER" editable="false" focusTraversable="false" layoutX="14.0" layoutY="760.0"
+             prefWidth="1172.0"
+             text="Official thread: http://forum.paradoxplaza.com/forum/showthread.php?715468-TOOL-Victoria-2-save-game-economy-analyzer"/>
+  <Label alignment="CENTER" layoutX="14.0" layoutY="707.0" prefWidth="1172.0"
+         text="Victoria 2 save game economy analyzer v.9 beta by Nashetovich (inspired by Lionhunter's war analyzer)"/>
+  <Label alignment="CENTER" layoutX="15.0" layoutY="732.0" prefWidth="1172.0"
+         text="Distributing under BSD License. Used  EugFile: an open-source Java library"/>
+  <Label layoutX="107.0" layoutY="90.0" text="Mod folder:">
+    <tooltip>
+      <Tooltip text="Like C:/Games/Victoria II/mod/SiR"/>
+    </tooltip>
+  </Label>
+  <TextField id="tfModName" fx:id="tfModPatch" layoutX="232.0" layoutY="84.0" prefWidth="860.0"
+  />
+  <Button id="btnBrowseLocal" fx:id="btnBrowseMod" alignment="BASELINE_RIGHT" layoutX="1108.0" layoutY="84.0"
+          mnemonicParsing="false" onAction="#onBrowseMod" text="Browse">
+    <tooltip>
+      <Tooltip text="Like C:/Games/Victoria II/mod/SiR"/>
+    </tooltip>
+  </Button>
+  <Button fx:id="btnGoods" disable="true" layoutX="14.0" layoutY="83.0" mnemonicParsing="false" onAction="#onGoods"
+          prefWidth="86.0" text="Goods"/>
+  <Label fx:id="lblStartDate" layoutX="14.0" layoutY="117.0"/>
+  <Label fx:id="lblCurrentDate" layoutX="14.0" layoutY="137.0"/>
+  <Label fx:id="lblPlayer" alignment="CENTER_RIGHT" layoutX="793.0" layoutY="117.0"
+         prefWidth="393.0"/>
+  <Label id="lblbPopCount" fx:id="lblPopCount" alignment="CENTER_RIGHT" layoutX="929.0" layoutY="137.0"
+         prefWidth="257.0"/>
+  <ProgressIndicator fx:id="piLoad" prefHeight="152.0" prefWidth="106.0" progress="-0.03" visible="false"
+                     AnchorPane.bottomAnchor="300.0" AnchorPane.leftAnchor="500.0" AnchorPane.rightAnchor="500.0"
+                     AnchorPane.topAnchor="300.0"/>
+</AnchorPane>

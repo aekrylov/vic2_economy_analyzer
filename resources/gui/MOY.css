@@ -1,0 +1,15 @@
+
+.table-view .column-header .label .text {
+	-fx-text-alignment: right;
+	
+}
+.table-view .column-header .label {
+	-fx-text-alignment: right;
+	-fx-content-display: right;
+	
+}
+.table-view {
+	-fx-alignment: center_right;
+	
+	
+}
