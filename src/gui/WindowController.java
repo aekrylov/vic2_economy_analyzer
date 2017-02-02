@@ -136,7 +136,7 @@ public class WindowController extends BaseController implements Initializable {
 
         setFactory(colEmployment, "employment");
         colEmployment.setVisible(false);
-        setFactory(colExport, "export");
+        setFactory(colExport, "exported");
         colExport.setVisible(false);
         setFactory(colImport, "imported");
         colImport.setVisible(false);
@@ -236,7 +236,7 @@ public class WindowController extends BaseController implements Initializable {
                     System.out.println("Nash: filling table...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
                     fillMainTable();
                     goodsListController.setReport(report);
-                    goodsListController.fillTable(report.getProducts());
+                    goodsListController.fillTable(report.getProductList());
 
                     float res = ((float) System.nanoTime() - startTime) / 1000000000;
                     System.out.println("Nash: total time is " + res + " seconds");
@@ -247,12 +247,9 @@ public class WindowController extends BaseController implements Initializable {
                     System.out.println("Nash: ups... " + e.getLocalizedMessage());
                 }
 
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        self.setLabels();
-                        self.setInterfaceEnabled(true);
-                    }
+                Platform.runLater(() -> {
+                    self.setLabels();
+                    self.setInterfaceEnabled(true);
                 });
 
                 return 0;

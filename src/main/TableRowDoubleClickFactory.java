@@ -13,7 +13,7 @@ import java.util.function.Consumer;
  * JavaFX table row factory implementation that allows for calling specified callback on table row double click
  *
  * usage:
- * {@code table.setRowFactory(new TableRowDoubleClickFactory(item -> {...})) }
+ * {@code table.setRowFactory(new TableRowDoubleClickFactory(product -> {...})) }
  * @param <T> table row data type
  */
 public class TableRowDoubleClickFactory<T> implements Callback<TableView<T>, TableRow<T>> {

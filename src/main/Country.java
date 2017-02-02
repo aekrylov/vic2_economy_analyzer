@@ -1,9 +1,8 @@
 package main;
 
-import java.util.ArrayList;
-
-
 import javafx.scene.image.Image;
+
+import java.util.ArrayList;
 
 /**
  * Holds the flag and a longer name than just three letters.
@@ -25,7 +24,7 @@ public class Country implements Comparable<Country> {
     /**
      * Summ for country in pounds
      */
-    public long export;
+    public long exported;
 
     private Image flag;
 
@@ -91,7 +90,7 @@ public class Country implements Comparable<Country> {
     protected String officialName = "";
     ArrayList<Province> owned = new ArrayList<Province>();
 
-    public ArrayList<GoodsStorage> storage = new ArrayList<GoodsStorage>();
+    public ArrayList<ProductStorage> storage = new ArrayList<ProductStorage>();
 
     private String tag;
 
@@ -107,47 +106,25 @@ public class Country implements Comparable<Country> {
     }
 
     public void calcGDPPerCapita(Country totalCountry) {
-        //iterator.actualSupply+=iterator.goldIncome;
-        //if (totalCountry.actualSupply>0)
-        GDPPart = actualSupply / (float) totalCountry.actualSupply * 100;
-        //else
-        //	iterator.GDPPart =Float.NaN;
+        GDPPart = actualSupply / totalCountry.actualSupply * 100;
         if (GDPPart < 0.001) GDPPart = 0;
-        //if (iterator.population>0){
+
         GDPPerCapita = actualSupply / (float) population * 100000;
-
-        //}else{
-        //	iterator.GDPPerCapita=Float.NaN;
-        //	iterator.unemploymentProcent=Float.NaN;
-        //}
-
     }
 
 
     @Override
-    public int compareTo(Country inCountry) {
-        int result = 0;
-        if (actualSupply == inCountry.actualSupply) result = 0;
-        else if (inCountry.actualSupply > actualSupply) result = 1;
-        else if (inCountry.actualSupply < actualSupply) result = -1;
-        return result;
+    public int compareTo(Country that) {
+        return Float.compare(actualSupply, that.actualSupply);
     }
 
     public boolean exist() {
         return population > 0;
     }
 
-    public GoodsStorage findStorage(String name) {
-        /*int i;
-		for (i = 0; i < storage.size() - 1; i++) {
-			if (storage.get(i).item.name.equalsIgnoreCase(name) == true) {
-				break;
-			}
-		}
-		return storage.get(i);*/
-        //GoodsStorage result;
-        for (GoodsStorage everyStorage : storage) {
-            if (everyStorage.item.name.equalsIgnoreCase(name)) {
+    public ProductStorage findStorage(String name) {
+        for (ProductStorage everyStorage : storage) {
+            if (everyStorage.product.name.equalsIgnoreCase(name)) {
                 return everyStorage;
             }
 
@@ -158,8 +135,6 @@ public class Country implements Comparable<Country> {
 
     public long getActualDemand() {
         return (long) (actualDemand);
-        //return actualDemand;
-
     }
 
     /**
@@ -174,8 +149,8 @@ public class Country implements Comparable<Country> {
         return employmentRGO;
     }
 
-    public long getExport() {
-        return export;
+    public long getExported() {
+        return exported;
     }
 
     public Image getFlag() {
@@ -249,17 +224,17 @@ public class Country implements Comparable<Country> {
      */
     void innerCalculation() {
 
-        for (GoodsStorage everyStorage : storage) {
+        for (ProductStorage everyStorage : storage) {
 
             // calculating real supply
             float thrownToMarket = (everyStorage.savedCountrySupply - everyStorage.actualSoldDomestic);
 
             if (thrownToMarket <= 0) everyStorage.actualSupply = everyStorage.savedCountrySupply;
             else {
-                if (everyStorage.item.name.equalsIgnoreCase("precious_metal"))
+                if (everyStorage.product.name.equalsIgnoreCase("precious_metal"))
                     everyStorage.actualSupply = everyStorage.savedCountrySupply;
-                else if (everyStorage.item.worldmarketPool > 0)
-                    everyStorage.actualSupply = everyStorage.actualSoldDomestic + thrownToMarket * everyStorage.item.actualSoldWorld / everyStorage.item.worldmarketPool;
+                else if (everyStorage.product.worldmarketPool > 0)
+                    everyStorage.actualSupply = everyStorage.actualSoldDomestic + thrownToMarket * everyStorage.product.actualSoldWorld / everyStorage.product.worldmarketPool;
                 else
                     everyStorage.actualSupply = everyStorage.actualSoldDomestic;
             }
@@ -268,17 +243,17 @@ public class Country implements Comparable<Country> {
 
             if (everyStorage.imported < 0) everyStorage.imported = 0;
 
-            //calculating export
+            //calculating exported
             float exp = 0;
-            if (!everyStorage.item.name.equalsIgnoreCase("precious_metal")) {
+            if (!everyStorage.product.name.equalsIgnoreCase("precious_metal")) {
                 exp = (everyStorage.actualSupply - everyStorage.actualDemand);//???!!!!
                 if (exp > 0) {
-                    everyStorage.export = exp;
-                } else everyStorage.export = 0;
+                    everyStorage.exported = exp;
+                } else everyStorage.exported = 0;
             }
             //
-            everyStorage.actualSoldWorld = everyStorage.item.actualSoldWorld;
-            everyStorage.worldmarketPool = everyStorage.item.worldmarketPool;
+            everyStorage.actualSoldWorld = everyStorage.product.actualSoldWorld;
+            everyStorage.worldmarketPool = everyStorage.product.worldmarketPool;
         }
 
         // calculating total data for country ()
@@ -288,12 +263,12 @@ public class Country implements Comparable<Country> {
         actualSupply = 0;
         actualDemand = 0;
         imported = 0;
-        export = 0;
-        for (GoodsStorage everyGoods : storage) {
-            actualSupply += everyGoods.actualSupply * everyGoods.item.price;
-            actualDemand += everyGoods.actualDemand * everyGoods.item.price;
-            imported += everyGoods.imported * everyGoods.item.price;
-            export += everyGoods.export * everyGoods.item.price;
+        exported = 0;
+        for (ProductStorage everyGoods : storage) {
+            actualSupply += everyGoods.actualSupply * everyGoods.product.price;
+            actualDemand += everyGoods.actualDemand * everyGoods.product.price;
+            imported += everyGoods.imported * everyGoods.product.price;
+            exported += everyGoods.exported * everyGoods.product.price;
 
         }
     }

@@ -1,22 +1,13 @@
 package main;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import eug.parser.EUGFileIO;
-
 import eug.shared.GenericObject;
 import eug.shared.ObjectVariable;
+
+import java.io.*;
+import java.lang.reflect.Field;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Report {
 
@@ -27,6 +18,8 @@ public class Report {
 
     private static String modPath;
     private static String localisationPath;
+
+    public static final String TOTAL_TAG = "TOT";
 
     public static void setModPath(String modPath) {
         Report.modPath = modPath;
@@ -48,11 +41,17 @@ public class Report {
         return startDate;
     }
 
-    public List<Country> getCountryList() {
-        return countryList;
+    public Country getCountry(String tag) {
+        return countries.get(tag);
     }
 
-    public List<Product> getProducts() {return products; }
+    public Collection<Country> getCountryList() {
+        return countries.values();
+    }
+
+    public Collection<Product> getProductList() {
+        return productMap.values();
+    }
 
     /**
      * Installpath in, list of csv string names out. Half finished, will probably not be completed.
@@ -112,9 +111,8 @@ public class Report {
 
     }
 
-    private ArrayList<Product> products = new ArrayList<>();
+    private Map<String, Product> productMap = new HashMap<>();
     private Map<String, Country> countries = new HashMap<>();
-    private List<Country> countryList = new ArrayList<>();
 
     //String localizationPatch;
 
@@ -141,11 +139,7 @@ public class Report {
     }
 
     public Product findProduct(String name) {
-        for (Product product : products)
-            if (product.name.equalsIgnoreCase(name)) return product;
-        return null;
-
-        // TODO exceptions
+        return productMap.get(name);
     }
 
     /**
@@ -162,12 +156,6 @@ public class Report {
                 if (new File(modPath).exists())
                     modLoclist = listFiles(modPath);
             }
-            //					readCountryNames(Reference.INSTALLPATH + "/localisation/text.csv");
-            //					readCountryNames(Reference.INSTALLPATH + "/localisation/1.2.csv");
-            //					readCountryNames(Reference.INSTALLPATH + "/localisation/beta2.csv");
-            //					readCountryNames(Reference.INSTALLPATH + "/localisation/darkness_3_01.csv");
-            //					readCountryNames(Reference.INSTALLPATH + "/localisation/housedivided.csv");
-            //					readCountryNames(Reference.INSTALLPATH + "/localisation/newtext.csv");
             for (String filesForLoad : loclist) {
                 readCountryNames(inPatch + "/localisation/" + filesForLoad);
                 //readCountryNames(localizationPatch+"/" + filesForLoad);
@@ -201,10 +189,15 @@ public class Report {
 
     /**
      * Reads the specified save game file fully and constructs full report
+     *
      * @param filePath path to save file
      * @throws IOException if an IO error occurs
      */
     public Report(String filePath) throws IOException {
+        Country total = new Country(TOTAL_TAG);
+        total.population = 1;
+        countries.put(TOTAL_TAG, total);
+
         System.out.println("Nash: reading EUG head... free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         GenericObject head = readSaveHead(filePath);
 
@@ -232,18 +225,22 @@ public class Report {
     private void countTotals() {
 
         //removing empty countries
-        countryList = countries.values()
+        countries = countries.values()
                 .stream()
                 .filter(Country::exist)
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(Country::getTag, e -> e));
 
-        Country totalCountry = new Country("");
-        //int foundCountries = 0;
+        List<Country> countryList = new ArrayList<>(countries.values());
+
+        Country totalCountry = countries.get(TOTAL_TAG);
 
         for (Country country : countryList) {
 
             // calculating real supply (without wasted)
             country.innerCalculation();
+
+            if (country.getTag().equals(TOTAL_TAG))
+                continue;
 
             totalCountry.population += country.population;
             totalCountry.goldIncome += country.goldIncome;
@@ -252,24 +249,24 @@ public class Report {
             totalCountry.workforceRGO += country.workforceRGO;
             totalCountry.workforceFactory += country.workforceFactory;
 
-            totalCountry.export += country.export;
+            totalCountry.exported += country.exported;
             totalCountry.imported += country.imported;
             totalCountry.actualSupply += country.actualSupply;
 
-            for (GoodsStorage storage : country.storage) {
-                Product product = findProduct(storage.item.name);
+            for (ProductStorage storage : country.storage) {
+                Product product = findProduct(storage.product.name);
                 product.actualBought += storage.actualSupply;
 
-                GoodsStorage foundStorage = totalCountry.findStorage(storage.item.name);
+                ProductStorage foundStorage = totalCountry.findStorage(storage.product.name);
                 if (foundStorage == null) {
-                    foundStorage = new GoodsStorage(storage.item);
+                    foundStorage = new ProductStorage(storage.product);
                     totalCountry.storage.add(foundStorage);
                 }
 
                 foundStorage.actualDemand += storage.actualDemand;
                 foundStorage.actualSoldDomestic += storage.actualSoldDomestic;
                 foundStorage.actualSupply += storage.actualSupply;
-                foundStorage.export += storage.export;
+                foundStorage.exported += storage.exported;
                 foundStorage.imported += storage.imported;
                 foundStorage.MaxDemand += storage.MaxDemand;
                 foundStorage.savedCountrySupply += storage.savedCountrySupply;
@@ -278,10 +275,7 @@ public class Report {
         }
 
         totalCountry.innerCalculation();
-
-
         totalCountry.setOfficialName("Total");
-        countryList.add(totalCountry);
 
         for (Country country : countryList) {
             country.calcGDPPerCapita(totalCountry);
@@ -290,8 +284,8 @@ public class Report {
         Collections.sort(countryList);
         int calc = 0;
         for (Country country : countryList) {
-                country.GDPPlace = calc;
-                calc++;
+            country.GDPPlace = calc;
+            calc++;
         }
 
     }
@@ -306,97 +300,36 @@ public class Report {
         GenericObject eugSave = EUGFileIO.load(savePatch);
 
 
-        GenericObject foundWorldMarket = eugSave.getChild("worldmarket");
+        GenericObject worldmarket = eugSave.getChild("worldmarket");
 
         // price loading
-        GenericObject foundPricePool = foundWorldMarket.getChild("price_pool");
-        List<ObjectVariable> price_pool = foundPricePool.values;
+        List<ObjectVariable> price_pool = worldmarket.getChild("price_pool").values;
         for (ObjectVariable iter : price_pool) {
             Product product = new Product(iter.varname, Float.valueOf(iter.getValue()));
-            products.add(product);
+            productMap.put(product.getName(), product);
         }
 
-        // trend loading
-        GenericObject foundTrend = foundWorldMarket.getChild("price_change");
-        List<ObjectVariable> Trends = foundTrend.values;
-        for (ObjectVariable everyTrend : Trends) {
-            for (Product everyGood : products) {
-                if (everyGood.name.equalsIgnoreCase(everyTrend.varname)) {
-                    everyGood.trend = Float.valueOf(everyTrend.getValue());
-                    break;
-                }
-            }
-        }
+        Map<String, String> fieldMap = new HashMap<>();
+        fieldMap.put("price_change", "trend");
+        fieldMap.put("demand", "maxDemand");
+        fieldMap.put("real_demand", "affordable");
+        fieldMap.put("actual_sold", "consumption");
+        fieldMap.put("supply_pool", "supply");
+        fieldMap.put("actual_sold_world", "actualSoldWorld");
+        fieldMap.put("worldmarket_pool", "worldmarketPool");
 
-        //MAx Demand loading
-        GenericObject foundDem = foundWorldMarket.getChild("demand");
-        List<ObjectVariable> Demands = foundDem.values;
-        for (ObjectVariable everyDemand : Demands) {
-            for (Product everyGood : products) {
-                if (everyGood.name.equalsIgnoreCase(everyDemand.varname)) {
-                    everyGood.maxDemand = Float.valueOf(everyDemand.getValue());
-                    break;
-                }
-            }
-        }
+        try {
+            for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
+                GenericObject object = worldmarket.getChild(entry.getKey());
+                Field field = Product.class.getField(entry.getValue());
 
-        // affordable demand loading
-        GenericObject foundConsump = foundWorldMarket.getChild("real_demand");
-        List<ObjectVariable> Consumps = foundConsump.values;
-        for (ObjectVariable everyConsump : Consumps) {
-            for (Product everyGood : products) {
-                if (everyGood.name.equalsIgnoreCase(everyConsump.varname)) {
-                    everyGood.affordable = Float.valueOf(everyConsump.getValue());
-                    break;
+                List<ObjectVariable> list = object.values;
+                for (ObjectVariable variable : list) {
+                    field.setFloat(productMap.get(variable.varname), Float.valueOf(variable.getValue()));
                 }
             }
-        }
-
-        //global consumption loading WTF ????? 
-        GenericObject foundSupply = foundWorldMarket.getChild("actual_sold");
-        List<ObjectVariable> Supplies = foundSupply.values;
-        for (ObjectVariable everySupply : Supplies) {
-            for (Product everyGood : products) {
-                if (everyGood.name.equalsIgnoreCase(everySupply.varname)) {
-                    everyGood.consumption = Float.valueOf(everySupply.getValue());
-                    break;
-                }
-            }
-        }
-
-        // global Supply loading
-        GenericObject foundRSupply = foundWorldMarket.getChild("supply_pool");
-        List<ObjectVariable> RSupplies = foundRSupply.values;
-        for (ObjectVariable everyRSupply : RSupplies) {
-            for (Product everyGood : products) {
-                if (everyGood.name.equalsIgnoreCase(everyRSupply.varname)) {
-                    everyGood.supply = Float.valueOf(everyRSupply.getValue());
-                    break;
-                }
-            }
-        }
-        // actual_sold_world
-        GenericObject foundASW = foundWorldMarket.getChild("actual_sold_world");
-        List<ObjectVariable> listASW = foundASW.values;
-        for (ObjectVariable everyASW : listASW) {
-            for (Product everyGood : products) {
-                if (everyGood.name.equalsIgnoreCase(everyASW.varname)) {
-                    everyGood.actualSoldWorld = Float.valueOf(everyASW.getValue());
-                    break;
-                }
-            }
-        }
-
-        // worldmarket_pool
-        GenericObject foundWMP = foundWorldMarket.getChild("worldmarket_pool");
-        List<ObjectVariable> listWMP = foundWMP.values;
-        for (ObjectVariable everyWMP : listWMP) {
-            for (Product everyGood : products) {
-                if (everyGood.name.equalsIgnoreCase(everyWMP.varname)) {
-                    everyGood.worldmarketPool = Float.valueOf(everyWMP.getValue());
-                    break;
-                }
-            }
+        } catch (ReflectiveOperationException e) {
+            e.printStackTrace();
         }
 
         return eugSave;
@@ -420,7 +353,6 @@ public class Report {
         System.out.println("Nash: preload States...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         save.preloadStates();
 
-
         //------------------------------------
         // country data loading
         //------------------------------------
@@ -433,7 +365,7 @@ public class Report {
             for (ObjectVariable everyGood : foundActualSold.values) {
                 Product tempProduct = findProduct(everyGood.varname);
                 if (tempProduct != null) {
-                    GoodsStorage tstorage = new GoodsStorage(tempProduct);
+                    ProductStorage tstorage = new ProductStorage(tempProduct);
                     tstorage.savedCountrySupply = Float.valueOf(everyGood.getValue());
                     country.storage.add(tstorage);
                 } else System.out.println("Nash: findProduct(everyGood.varname) returned NULL");
@@ -442,11 +374,11 @@ public class Report {
             // load max demand
             GenericObject foundMaxDemand = countryObject.getChild("domestic_demand_pool");
             for (ObjectVariable everyGood : foundMaxDemand.values) {
-                GoodsStorage storage = country.findStorage(everyGood.varname);
+                ProductStorage storage = country.findStorage(everyGood.varname);
                 if (storage != null) {
                     storage.MaxDemand = Float.valueOf(everyGood.getValue());
                 } else {
-                    storage = new GoodsStorage(findProduct(everyGood.varname));
+                    storage = new ProductStorage(findProduct(everyGood.varname));
                     storage.MaxDemand = Float.valueOf(everyGood.getValue());
                     country.storage.add(storage);
                 }
@@ -455,12 +387,12 @@ public class Report {
             // load internal consumption
             GenericObject foundSold = countryObject.getChild("actual_sold_domestic");
             for (ObjectVariable everyGood : foundSold.values) {
-                GoodsStorage storage = country.findStorage(everyGood.varname);
+                ProductStorage storage = country.findStorage(everyGood.varname);
                 if (storage != null) {
                     storage.actualSoldDomestic = Float.valueOf(everyGood.getValue());
                     storage.actualDemand = storage.actualSoldDomestic;
                 } else {
-                    storage = new GoodsStorage(findProduct(everyGood.varname));
+                    storage = new ProductStorage(findProduct(everyGood.varname));
                     storage.actualSoldDomestic = Float.valueOf(everyGood.getValue());
                     storage.actualDemand = storage.actualSoldDomestic;
                     country.storage.add(storage);
@@ -512,25 +444,26 @@ public class Report {
         popCount = 0;
 
         for (GenericObject province : save.provinces.values()) {
-            if(!province.contains("owner")) {
-                //todo add to total?
-                //ignoring
-                continue;
+            String ownerTag = province.getString("owner");
+            if (ownerTag.isEmpty()) {
+                ownerTag = TOTAL_TAG;
             }
-            Country owner = countries.get(province.getString("owner"));
+
+            Country owner = countries.get(ownerTag);
             for (GenericObject object : province.children) {
 
                 // population calculation {
                 if (object.contains("size")) {
                     popCount++;
+                    int popSize = object.getInt("size");
                     //todo why x4
-                    try{
-                        owner.population += Long.valueOf(object.getString("size")) * 4;
-                    } catch (NullPointerException ignored) { }
+
+                    owner.population += popSize * 4;
+                    
                     if (object.name.equalsIgnoreCase("farmers") || object.name.equalsIgnoreCase("labourers") || object.name.equalsIgnoreCase("slaves")) {
-                        owner.workforceRGO += Long.valueOf(object.getString("size"));
+                        owner.workforceRGO += popSize;
                     } else if (object.name.equalsIgnoreCase("clerks") || object.name.equalsIgnoreCase("craftsmen")) {
-                        owner.workforceFactory += Long.valueOf(object.getString("size"));
+                        owner.workforceFactory += popSize;
                     }
                 } else {
                     if (object.name.equalsIgnoreCase("RGO")) { // gold income calculation
@@ -555,53 +488,39 @@ public class Report {
         }
     }
 
-    private boolean readPrices(String inPatch) {
+    private boolean readPrices(String path) {
         boolean result = false;
+        String goodsPath = path + "/common/goods.txt";
 
-        System.out.println("Nash: attempt to read " + inPatch + "/common/goods.txt");
+        System.out.println("Nash: attempt to read " + goodsPath);
 
-        if (inPatch != null && !inPatch.isEmpty()) {
+        if (path != null && !path.isEmpty()) {
 
+            if (new File(goodsPath).exists()) {
 
-            String targetPatch = inPatch + "/common/goods.txt";
+                GenericObject root = EUGFileIO.load(goodsPath);
+                if (root != null) {
+                    List<GenericObject> list;
 
-            if (new File(targetPatch).exists()) {
+                    String[] productTypes = {
+                            "military_goods",
+                            "raw_material_goods",
+                            "industrial_goods",
+                            "consumer_goods"
+                    };
 
-                GenericObject goodsScen = EUGFileIO.load(targetPatch);
-                if (goodsScen != null) {
-                    List<GenericObject> list = goodsScen.getChild("military_goods").children;
-                    for (GenericObject everyGood : list) {
-                        Product found = findProduct(everyGood.name);
-                        found.basePrice = Float.valueOf(everyGood.values.get(0).getValue());
-                        //found.basePrice=Float.valueOf(everyGood..getValue())
-                    }
-
-                    list = goodsScen.getChild("raw_material_goods").children;
-                    for (GenericObject everyGood : list) {
-                        Product found = findProduct(everyGood.name);
-                        found.basePrice = Float.valueOf(everyGood.values.get(0).getValue());
-                        //found.basePrice=Float.valueOf(everyGood..getValue())
-                    }
-
-                    list = goodsScen.getChild("industrial_goods").children;
-                    for (GenericObject everyGood : list) {
-                        Product found = findProduct(everyGood.name);
-                        found.basePrice = Float.valueOf(everyGood.values.get(0).getValue());
-                        //found.basePrice=Float.valueOf(everyGood..getValue())
-                    }
-
-                    list = goodsScen.getChild("consumer_goods").children;
-                    for (GenericObject everyGood : list) {
-                        Product found = findProduct(everyGood.name);
-                        found.basePrice = Float.valueOf(everyGood.values.get(0).getValue());
-                        //found.basePrice=Float.valueOf(everyGood..getValue())
+                    for (String type : productTypes) {
+                        list = root.getChild(type).children;
+                        for (GenericObject object : list) {
+                            findProduct(object.name).basePrice = Float.valueOf(object.values.get(0).getValue());
+                        }
                     }
                     result = true;
                 }
 
             }
         }
-        if (!result) System.out.println("Nash: failed to read " + inPatch + "/common/goods.txt");
+        if (!result) System.out.println("Nash: failed to read " + goodsPath);
         return result;
 
     }
