@@ -12,6 +12,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import main.Report;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -24,8 +25,8 @@ import java.util.function.Function;
  */
 public class ChartsController extends BaseController {
     protected final Scene scene;
-    protected GridPane grid;
-    protected Report report;
+    protected final GridPane grid;
+    protected final Report report;
 
     public ChartsController(Report report) {
         this.report = report;
@@ -57,11 +58,12 @@ public class ChartsController extends BaseController {
      */
     protected PieChart addChart(List<PieChart.Data> pieChartData, int i, int j, String title,
                                 Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
+        pieChartData.sort(Comparator.comparing(PieChart.Data::getPieValue).reversed());
         final PieChart chart = new PieChart(FXCollections.observableList(pieChartData));
 
         chart.setStartAngle(90);
         chart.setLegendVisible(false);
-        chart.setLabelsVisible(false);
+        chart.setLabelsVisible(true);
 
         chart.setTitle(title);
         final Label caption = new Label("");

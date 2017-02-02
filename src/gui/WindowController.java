@@ -1,9 +1,8 @@
-/**
- *
- */
 package gui;
 
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -13,12 +12,14 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import javafx.util.Callback;
 import main.*;
 
 import java.io.File;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.ResourceBundle;
+import java.util.function.Function;
 
 /**
  * @author nashet
@@ -26,13 +27,7 @@ import java.util.ResourceBundle;
 public class WindowController extends BaseController implements Initializable {
 
     @FXML
-    Button btnOldLoader;
-    @FXML
-    Button btnReLoad;
-    @FXML
     Button btnLoad;
-    @FXML
-    Button btnTest;
     @FXML
     Button btnGoods;
     @FXML
@@ -41,8 +36,6 @@ public class WindowController extends BaseController implements Initializable {
     Button btnBrowseLocal;
     @FXML
     Button btnBrowseMod;
-    @FXML
-    public Label lblEerror;
     @FXML
     public Label lblStartDate;
     @FXML
@@ -106,10 +99,6 @@ public class WindowController extends BaseController implements Initializable {
         mainTable.setItems(countryTableContent);
     }
 
-    public Label getErrorLabel() {
-        return lblEerror;
-    }
-
     private WindowController self;
 
     private Report report;
@@ -122,13 +111,13 @@ public class WindowController extends BaseController implements Initializable {
 
 
         setFactory(colCountry, "officialName");
-        setFactory(colPopulation, "PopulationTV");
-        setFactory(colGDP, "actualSupply");
+        colPopulation.setCellValueFactory(new KmgCellValueFactory<>(Country::getPopulation));
+        colGDP.setCellValueFactory(new KmgCellValueFactory<>(Country::getActualSupply));
         setFactory(colConsumption, "actualDemand");
         colConsumption.setVisible(false);
-        setFactory(colGDPPer, "GDPPerCapitaTV");
+        colGDPPer.setCellValueFactory(new KmgCellValueFactory<>(Country::getGdpPerCapita));
         setFactory(colGDPPlace, "GDPPlace");
-        setFactory(colGDPPart, "GDPPartTV");
+        colGDPPart.setCellValueFactory(new PercentageCellValueFactory<>(Country::getGDPPart));
         setFactory(colGoldIncome, "goldIncome");
 
         setFactory(colWorkforce, "workforce");
@@ -141,8 +130,8 @@ public class WindowController extends BaseController implements Initializable {
         setFactory(colImport, "imported");
         colImport.setVisible(false);
 
-        setFactory(colUnemploymentRate, "UnemploymentProcentTV");
-        setFactory(colUnemploymentRateFactory, "unemploymentProcentFactoryTV");
+        colUnemploymentRate.setCellValueFactory(new PercentageCellValueFactory<>(Country::getUnemploymentRate));
+        colUnemploymentRateFactory.setCellValueFactory(new PercentageCellValueFactory<>(Country::getUnemploymentRateFactory));
 
         PathKeeper.checkPaths();
         tfLocalization.setText(PathKeeper.LOCALISATION_PATH);
@@ -273,12 +262,9 @@ public class WindowController extends BaseController implements Initializable {
         try {
             FileChooser fileChooser = new FileChooser();
 
-
             if (!PathKeeper.SAVE_PATH.isEmpty()) {
                 //initialFile
-                File initialFile = new File(PathKeeper.SAVE_PATH);
-                initialFile = new File(initialFile.getParent());
-
+                File initialFile = new File(PathKeeper.SAVE_PATH).getParentFile();
                 fileChooser.setInitialDirectory(initialFile);
             }
 
@@ -330,5 +316,37 @@ public class WindowController extends BaseController implements Initializable {
 
     public void setGoodsListController(GoodsListController goodsListController) {
         this.goodsListController = goodsListController;
+    }
+}
+
+/**
+ * By Anton Krylov (anthony.kryloff@gmail.com)
+ * Date: 2/2/17 5:12 PM
+ */
+class KmgCellValueFactory<S> implements Callback<TableColumn.CellDataFeatures<S, String>, ObservableValue<String>> {
+
+    private final Function<S, ? extends Number> getter;
+
+    KmgCellValueFactory(Function<S, ? extends Number> getter) {
+        this.getter = getter;
+    }
+
+    @Override
+    public ObservableValue<String> call(TableColumn.CellDataFeatures<S, String> param) {
+        return new ReadOnlyStringWrapper(Wrapper.toKMG(getter.apply(param.getValue())));
+    }
+}
+
+class PercentageCellValueFactory<S> implements Callback<TableColumn.CellDataFeatures<S, String>, ObservableValue<String>> {
+
+    private final Function<S, Float> getter;
+
+    public PercentageCellValueFactory(Function<S, Float> getter) {
+        this.getter = getter;
+    }
+
+    @Override
+    public ObservableValue<String> call(TableColumn.CellDataFeatures<S, String> param) {
+        return new ReadOnlyStringWrapper(Wrapper.toPercentage(getter.apply(param.getValue())));
     }
 }

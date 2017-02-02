@@ -1,6 +1,3 @@
-/**
- *
- */
 package main;
 
 import java.util.Locale;
@@ -10,21 +7,12 @@ import java.util.Locale;
  */
 public class Wrapper {
 
-    static public String toKMG(long inline) {
-        //, int maxlenght
-        if (inline < 1000) return String.valueOf(inline);
-        int exp = (int) (Math.log(inline) / Math.log(1000));
-        String pre = String.valueOf("KMGTPE".charAt(exp - 1));
-        return String.format(Locale.US, "%.3f %s", inline / Math.pow(1000, exp), pre);
-    }
-
-    static public String toKMG(float inline) {
-        //, int maxlenght
+    static public <T extends Number> String toKMG(T value) {
+        double inline = value.doubleValue();
         if (inline < 1000) return String.format(Locale.US, "%.3f", inline);
         int exp = (int) (Math.log(inline) / Math.log(1000));
-        String pre = String.valueOf("KMGTPE".charAt(exp - 1));
+        char pre = "KMGTPE".charAt(exp - 1);
         return String.format(Locale.US, "%.3f %s", inline / Math.pow(1000, exp), pre);
-        //.replace(',', '.')
     }
 
     public static float fromKMG(String in) {

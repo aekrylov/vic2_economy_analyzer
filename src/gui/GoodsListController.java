@@ -1,13 +1,4 @@
-/**
- *
- */
 package gui;
-
-import java.net.URL;
-import java.util.*;
-
-import main.Product;
-import main.Report;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,7 +6,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import main.Product;
+import main.Report;
 import main.TableRowDoubleClickFactory;
+
+import java.net.URL;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.ResourceBundle;
 
 /**
  * @author nashetovich
@@ -23,7 +21,7 @@ import main.TableRowDoubleClickFactory;
 public class GoodsListController extends BaseController implements Initializable {
     @FXML
     TableView<Product> productsTable;
-    static final ObservableList<Product> productsTableItems = FXCollections.observableArrayList();
+    private static final ObservableList<Product> productsTableItems = FXCollections.observableArrayList();
     @FXML
     TableColumn<Product, String> colName;
     @FXML
@@ -59,9 +57,7 @@ public class GoodsListController extends BaseController implements Initializable
     public void initialize(URL arg0, ResourceBundle arg1) {
         
         //add double click listener
-        productsTable.setRowFactory(new TableRowDoubleClickFactory<>(product -> {
-            Main.showProduct(report, product);
-        }));
+        productsTable.setRowFactory(new TableRowDoubleClickFactory<>(product -> Main.showProduct(report, product)));
         
         setFactory(colName, "name");
         setFactory(colConsumption, "Consumption");
@@ -102,10 +98,8 @@ public class GoodsListController extends BaseController implements Initializable
 
         productsTableItems.addAll(products);
 
-        //Collections.sort(total);
         productsTableItems.add(total);
-        Comparator comparator = new Product.NameComparator();
-        productsTableItems.sort(comparator);
+        productsTableItems.sort(Comparator.comparing(Product::getName));
 
         productsTable.setItems(productsTableItems);
     }

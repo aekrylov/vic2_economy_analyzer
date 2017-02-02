@@ -6,6 +6,8 @@ import eug.shared.ObjectVariable;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,7 +71,7 @@ public class Report {
 				"housedivided2_3.csv",
 				"newspaper_text.csv",
 		"newstext_3_01.csv" };*/
-        List<String> locList = new ArrayList<String>();
+        List<String> locList = new ArrayList<>();
 
         String files;
         File folder = new File(path + "/localisation");
@@ -77,10 +79,10 @@ public class Report {
         File[] listOfFiles = folder.listFiles();
 
 
-        for (int i = 0; i < listOfFiles.length; i++) {
+        for (File listOfFile : listOfFiles) {
 
-            if (listOfFiles[i].isFile()) {
-                files = listOfFiles[i].getName();
+            if (listOfFile.isFile()) {
+                files = listOfFile.getName();
                 if (files.endsWith(".csv") || files.endsWith(".CSV")) {
                     //						for (String un : unwanted) {
 
@@ -114,8 +116,6 @@ public class Report {
     private Map<String, Product> productMap = new HashMap<>();
     private Map<String, Country> countries = new HashMap<>();
 
-    //String localizationPatch;
-
     /**
      * Reads the given file and for any given line checks if the tag is equal to the
      * one in countrylist.
@@ -143,12 +143,12 @@ public class Report {
     }
 
     /**
-     * Main method of this class. Manages the reading from csv
+     * Reads localisations for given game path
      */
-    public void readLocalisations(String inPatch) {
+    private void readLocalisations(String path) {
 
         try {
-            List<String> loclist = listFiles(inPatch);
+            List<String> loclist = listFiles(path);
             List<String> modLoclist = null;
 
 
@@ -157,7 +157,7 @@ public class Report {
                     modLoclist = listFiles(modPath);
             }
             for (String filesForLoad : loclist) {
-                readCountryNames(inPatch + "/localisation/" + filesForLoad);
+                readCountryNames(path + "/localisation/" + filesForLoad);
                 //readCountryNames(localizationPatch+"/" + filesForLoad);
 
             }
@@ -193,7 +193,7 @@ public class Report {
      * @param filePath path to save file
      * @throws IOException if an IO error occurs
      */
-    public Report(String filePath) throws IOException {
+    public Report(String filePath) {
         Country total = new Country(TOTAL_TAG);
         total.population = 1;
         countries.put(TOTAL_TAG, total);
@@ -206,8 +206,8 @@ public class Report {
         System.out.println("Nash: processing POPs... free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         countPops(save);
 
-        if (!readPrices(modPath))
-            readPrices(localisationPath);
+        if (!readProductInfo(modPath))
+            readProductInfo(localisationPath);
 
         System.out.println("Nash: reading localizations...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         readLocalisations(localisationPath);
@@ -235,7 +235,6 @@ public class Report {
         Country totalCountry = countries.get(TOTAL_TAG);
 
         for (Country country : countryList) {
-
             // calculating real supply (without wasted)
             country.innerCalculation();
 
@@ -253,24 +252,23 @@ public class Report {
             totalCountry.imported += country.imported;
             totalCountry.actualSupply += country.actualSupply;
 
-            for (ProductStorage storage : country.storage) {
+            for (ProductStorage storage : country.getStorage()) {
                 Product product = findProduct(storage.product.name);
                 product.actualBought += storage.actualSupply;
 
-                ProductStorage foundStorage = totalCountry.findStorage(storage.product.name);
-                if (foundStorage == null) {
-                    foundStorage = new ProductStorage(storage.product);
-                    totalCountry.storage.add(foundStorage);
+                ProductStorage totalStorage = totalCountry.findStorage(storage.product.name);
+                if (totalStorage == null) {
+                    totalStorage = new ProductStorage(storage.product);
+                    totalCountry.addStorage(totalStorage);
                 }
 
-                foundStorage.actualDemand += storage.actualDemand;
-                foundStorage.actualSoldDomestic += storage.actualSoldDomestic;
-                foundStorage.actualSupply += storage.actualSupply;
-                foundStorage.exported += storage.exported;
-                foundStorage.imported += storage.imported;
-                foundStorage.MaxDemand += storage.MaxDemand;
-                foundStorage.savedCountrySupply += storage.savedCountrySupply;
-
+                totalStorage.actualDemand += storage.actualDemand;
+                totalStorage.actualSoldDomestic += storage.actualSoldDomestic;
+                totalStorage.actualSupply += storage.actualSupply;
+                totalStorage.exported += storage.exported;
+                totalStorage.imported += storage.imported;
+                totalStorage.MaxDemand += storage.MaxDemand;
+                totalStorage.savedSupply += storage.savedSupply;
             }
         }
 
@@ -281,7 +279,7 @@ public class Report {
             country.calcGDPPerCapita(totalCountry);
         }
 
-        Collections.sort(countryList);
+        countryList.sort(Comparator.reverseOrder());
         int calc = 0;
         for (Country country : countryList) {
             country.GDPPlace = calc;
@@ -290,7 +288,7 @@ public class Report {
 
     }
 
-    private GenericObject readSaveHead(String savePatch) throws IOException {
+    private GenericObject readSaveHead(String savePatch) {
         //localizationPatch=localPatch;
 
 
@@ -298,8 +296,6 @@ public class Report {
         // global data loading
         //------------------------------------
         GenericObject eugSave = EUGFileIO.load(savePatch);
-
-
         GenericObject worldmarket = eugSave.getChild("worldmarket");
 
         // price loading
@@ -309,6 +305,7 @@ public class Report {
             productMap.put(product.getName(), product);
         }
 
+        //load global product data
         Map<String, String> fieldMap = new HashMap<>();
         fieldMap.put("price_change", "trend");
         fieldMap.put("demand", "maxDemand");
@@ -339,7 +336,7 @@ public class Report {
     /**
      * Should contain EUG file reading only
      */
-    private Vic2SaveGameNash readSaveBody(String savePatch, GenericObject eugSave) throws IOException {
+    private Vic2SaveGameNash readSaveBody(String savePatch, GenericObject eugSave) {
 
 
         System.out.println("Nash: openning Vic2SaveGame...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
@@ -361,14 +358,14 @@ public class Report {
             Country country = new Country(countryObject.name);
 
             // load savedCountrySupply (ts)
-            GenericObject foundActualSold = countryObject.getChild("saved_country_supply");
-            for (ObjectVariable everyGood : foundActualSold.values) {
-                Product tempProduct = findProduct(everyGood.varname);
+            GenericObject saved_country_supply = countryObject.getChild("saved_country_supply");
+            for (ObjectVariable productObject : saved_country_supply.values) {
+                Product tempProduct = findProduct(productObject.varname);
                 if (tempProduct != null) {
                     ProductStorage tstorage = new ProductStorage(tempProduct);
-                    tstorage.savedCountrySupply = Float.valueOf(everyGood.getValue());
-                    country.storage.add(tstorage);
-                } else System.out.println("Nash: findProduct(everyGood.varname) returned NULL");
+                    tstorage.savedSupply = Float.valueOf(productObject.getValue());
+                    country.addStorage(tstorage);
+                } else System.err.println("Nash: findProduct(productObject.varname) returned NULL");
             }
 
             // load max demand
@@ -380,7 +377,7 @@ public class Report {
                 } else {
                     storage = new ProductStorage(findProduct(everyGood.varname));
                     storage.MaxDemand = Float.valueOf(everyGood.getValue());
-                    country.storage.add(storage);
+                    country.addStorage(storage);
                 }
             }
 
@@ -395,10 +392,11 @@ public class Report {
                     storage = new ProductStorage(findProduct(everyGood.varname));
                     storage.actualSoldDomestic = Float.valueOf(everyGood.getValue());
                     storage.actualDemand = storage.actualSoldDomestic;
-                    country.storage.add(storage);
+                    country.addStorage(storage);
                 }
             }
 
+            //count factory workers
             List<ObjectVariable> ghr;
             for (GenericObject stateObject : countryObject.children) {
                 if (stateObject.name.equalsIgnoreCase("state"))
@@ -436,7 +434,6 @@ public class Report {
             }
         }
 
-
         return save;
     }
 
@@ -466,10 +463,12 @@ public class Report {
                         owner.workforceFactory += popSize;
                     }
                 } else {
-                    if (object.name.equalsIgnoreCase("RGO")) { // gold income calculation
+                    if (object.name.equalsIgnoreCase("RGO")) {
+                        // gold income calculation
                         if (object.values.get(1).getValue().equalsIgnoreCase("precious_metal"))
                             owner.goldIncome += Float.valueOf(object.values.get(0).getValue()) / 1000;
 
+                        //count RGO employees
                         try {
                             List<GenericObject> workers = object.children.get(0).children.get(0).children;
                             for (GenericObject worker : workers) {
@@ -488,15 +487,19 @@ public class Report {
         }
     }
 
-    private boolean readPrices(String path) {
+    /**
+     * Reads product info from the given path (currently only baseprice)
+     *
+     * @param path path to game/mod
+     * @return if goods.txt is found and read
+     */
+    private boolean readProductInfo(String path) {
         boolean result = false;
         String goodsPath = path + "/common/goods.txt";
 
         System.out.println("Nash: attempt to read " + goodsPath);
 
-        if (path != null && !path.isEmpty()) {
-
-            if (new File(goodsPath).exists()) {
+        if (path != null && !path.isEmpty() && Files.exists(Paths.get(goodsPath))) {
 
                 GenericObject root = EUGFileIO.load(goodsPath);
                 if (root != null) {
@@ -517,8 +520,6 @@ public class Report {
                     }
                     result = true;
                 }
-
-            }
         }
         if (!result) System.out.println("Nash: failed to read " + goodsPath);
         return result;
