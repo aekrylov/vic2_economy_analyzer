@@ -26,7 +26,7 @@ public class Country extends EconomySubject implements Comparable<Country> {
      * Summ for country
      */
     public long employmentRGO;
-    public float unemploymentRate;
+    private float unemploymentRate;
     /**
      * Summ for country
      */
@@ -69,10 +69,8 @@ public class Country extends EconomySubject implements Comparable<Country> {
         this.officialName = tag;
     }
 
-    public void calcGDPPerCapita(Country totalCountry) {
+    public void calcGdpPart(Country totalCountry) {
         GDPPart = actualSupply / totalCountry.actualSupply * 100;
-
-        GDPPerCapita = actualSupply / (float) population * 100000;
     }
 
 
@@ -101,6 +99,10 @@ public class Country extends EconomySubject implements Comparable<Country> {
         this.flag = flag;
     }
 
+    public float getGdpPerCapita() {
+        return GDPPerCapita;
+    }
+
     public float getGDPPart() {
         return GDPPart;
     }
@@ -113,27 +115,12 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return (long) goldIncome;
     }
 
-    public String getOfficialName() {
-        if (officialName.startsWith(" ")) {
-            return officialName.substring(1);
-        } else
-            return officialName;
-    }
-
-    public void setOfficialName(String officialName) {
-        this.officialName = officialName;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
     public long getPopulation() {
         return population;
+    }
+
+    public float getUnemploymentRate() {
+        return unemploymentRate;
     }
 
     public float getUnemploymentRateFactory() {
@@ -144,20 +131,49 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return workforceRGO;
     }
 
+
+    public String getOfficialName() {
+        return officialName;
+    }
+
+    public void setOfficialName(String officialName) {
+        this.officialName = officialName.trim();
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
+    }
+
+    /**
+     * Clears calculated fields so that multiple inner calculations handled correctly
+     */
+    private void clearCalculated() {
+        totalSupply = 0;
+        actualSupply = 0;
+        actualDemand = 0;
+        imported = 0;
+        exported = 0;
+    }
+
     /**
      * Calculate inside-country data
      */
     void innerCalculation() {
-
+        clearCalculated();
         for (ProductStorage productStorage : getStorage()) {
 
-            // calculating real supply
-            float thrownToMarket = (productStorage.savedSupply - productStorage.actualSoldDomestic);
+            // calculating real totalSupply
+            float thrownToMarket = (productStorage.totalSupply - productStorage.actualSoldDomestic);
 
-            if (thrownToMarket <= 0) productStorage.actualSupply = productStorage.savedSupply;
+            if (thrownToMarket <= 0)
+                productStorage.actualSupply = productStorage.totalSupply;
             else {
                 if (productStorage.product.name.equalsIgnoreCase("precious_metal"))
-                    productStorage.actualSupply = productStorage.savedSupply;
+                    productStorage.actualSupply = productStorage.totalSupply;
                 else if (productStorage.product.worldmarketPool > 0)
                     productStorage.actualSupply = productStorage.actualSoldDomestic + thrownToMarket * productStorage.product.actualSoldWorld / productStorage.product.worldmarketPool;
                 else
@@ -169,19 +185,18 @@ public class Country extends EconomySubject implements Comparable<Country> {
             if (productStorage.imported < 0) productStorage.imported = 0;
 
             //calculating exported
-            float exp;
             if (!productStorage.product.name.equalsIgnoreCase("precious_metal")) {
-                exp = (productStorage.actualSupply - productStorage.actualDemand);//???!!!!
-                if (exp > 0) {
-                    productStorage.exported = exp;
-                } else productStorage.exported = 0;
+                productStorage.exported = Math.max(productStorage.actualSupply - productStorage.actualDemand, 0);//???!!!!
             }
             //
 
+            totalSupply += productStorage.getTotalSupplyPounds();
             actualSupply += productStorage.getActualSupplyPounds();
             actualDemand += productStorage.getActualDemandPounds();
             imported += productStorage.getImportedPounds();
             exported += productStorage.getExportedPounds();
+
+            GDPPerCapita = actualSupply / (float) population * 100000;
         }
 
         unemploymentRate = (workforceRGO - employmentRGO) * 4 / (float) population * 100;
@@ -201,11 +216,4 @@ public class Country extends EconomySubject implements Comparable<Country> {
         storageMap.put(product.product.getName(), product);
     }
 
-    public float getGdpPerCapita() {
-        return GDPPerCapita;
-    }
-
-    public float getUnemploymentRate() {
-        return unemploymentRate;
-    }
 }

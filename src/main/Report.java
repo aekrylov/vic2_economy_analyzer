@@ -71,44 +71,14 @@ public class Report {
 				"housedivided2_3.csv",
 				"newspaper_text.csv",
 		"newstext_3_01.csv" };*/
-        List<String> locList = new ArrayList<>();
 
-        String files;
         File folder = new File(path + "/localisation");
-        //File folder = new File(path);
-        File[] listOfFiles = folder.listFiles();
+        File[] files = folder.listFiles();
 
-
-        for (File listOfFile : listOfFiles) {
-
-            if (listOfFile.isFile()) {
-                files = listOfFile.getName();
-                if (files.endsWith(".csv") || files.endsWith(".CSV")) {
-                    //						for (String un : unwanted) {
-
-                    //							if (!files.equals(un)) {
-                    locList.add(files);
-                    //								System.out.println(files);
-                    //							}
-
-                    //						}
-
-                }
-            }
-        }
-
-		/* Removing files which I know have no country tags in them */
-
-        //			for (String un: unwanted) {
-        //				for (String loc: locList) {
-        //					if (loc.equals(un)) {
-        //						System.out.println(loc);
-        //						locList.remove(un);
-        //					}
-        //				}
-        //			}
-
-        return locList;
+        return Arrays.stream(files)
+                .filter(file -> file.isFile() && file.getName().toLowerCase().endsWith(".csv"))
+                .map(File::getName)
+                .collect(Collectors.toList());
 
 
     }
@@ -235,11 +205,11 @@ public class Report {
         Country totalCountry = countries.get(TOTAL_TAG);
 
         for (Country country : countryList) {
-            // calculating real supply (without wasted)
-            country.innerCalculation();
-
             if (country.getTag().equals(TOTAL_TAG))
                 continue;
+
+            // calculating real totalSupply (without wasted)
+            country.innerCalculation();
 
             totalCountry.population += country.population;
             totalCountry.goldIncome += country.goldIncome;
@@ -268,7 +238,7 @@ public class Report {
                 totalStorage.exported += storage.exported;
                 totalStorage.imported += storage.imported;
                 totalStorage.MaxDemand += storage.MaxDemand;
-                totalStorage.savedSupply += storage.savedSupply;
+                totalStorage.totalSupply += storage.totalSupply;
             }
         }
 
@@ -276,7 +246,7 @@ public class Report {
         totalCountry.setOfficialName("Total");
 
         for (Country country : countryList) {
-            country.calcGDPPerCapita(totalCountry);
+            country.calcGdpPart(totalCountry);
         }
 
         countryList.sort(Comparator.reverseOrder());
@@ -363,7 +333,7 @@ public class Report {
                 Product tempProduct = findProduct(productObject.varname);
                 if (tempProduct != null) {
                     ProductStorage tstorage = new ProductStorage(tempProduct);
-                    tstorage.savedSupply = Float.valueOf(productObject.getValue());
+                    tstorage.totalSupply = Float.valueOf(productObject.getValue());
                     country.addStorage(tstorage);
                 } else System.err.println("Nash: findProduct(productObject.varname) returned NULL");
             }
@@ -456,7 +426,7 @@ public class Report {
                     //todo why x4
 
                     owner.population += popSize * 4;
-                    
+
                     if (object.name.equalsIgnoreCase("farmers") || object.name.equalsIgnoreCase("labourers") || object.name.equalsIgnoreCase("slaves")) {
                         owner.workforceRGO += popSize;
                     } else if (object.name.equalsIgnoreCase("clerks") || object.name.equalsIgnoreCase("craftsmen")) {
@@ -501,25 +471,25 @@ public class Report {
 
         if (path != null && !path.isEmpty() && Files.exists(Paths.get(goodsPath))) {
 
-                GenericObject root = EUGFileIO.load(goodsPath);
-                if (root != null) {
-                    List<GenericObject> list;
+            GenericObject root = EUGFileIO.load(goodsPath);
+            if (root != null) {
+                List<GenericObject> list;
 
-                    String[] productTypes = {
-                            "military_goods",
-                            "raw_material_goods",
-                            "industrial_goods",
-                            "consumer_goods"
-                    };
+                String[] productTypes = {
+                        "military_goods",
+                        "raw_material_goods",
+                        "industrial_goods",
+                        "consumer_goods"
+                };
 
-                    for (String type : productTypes) {
-                        list = root.getChild(type).children;
-                        for (GenericObject object : list) {
-                            findProduct(object.name).basePrice = Float.valueOf(object.values.get(0).getValue());
-                        }
+                for (String type : productTypes) {
+                    list = root.getChild(type).children;
+                    for (GenericObject object : list) {
+                        findProduct(object.name).basePrice = Float.valueOf(object.values.get(0).getValue());
                     }
-                    result = true;
                 }
+                result = true;
+            }
         }
         if (!result) System.out.println("Nash: failed to read " + goodsPath);
         return result;

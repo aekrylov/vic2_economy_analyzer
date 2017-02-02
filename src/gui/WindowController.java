@@ -65,9 +65,9 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     public TableColumn<Country, String> colPopulation;
     @FXML
-    TableColumn<Country, String> colGDP;
+    TableColumn<Country, Float> colConsumption;
     @FXML
-    TableColumn<Country, Double> colConsumption;
+    TableColumn<Country, String> colGDP;
     @FXML
     TableColumn<Country, String> colGDPPer;
     @FXML
@@ -81,9 +81,9 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     TableColumn<Country, Long> colEmployment;
     @FXML
-    TableColumn<Country, Long> colExport;
+    TableColumn<Country, Float> colExport;
     @FXML
-    TableColumn<Country, Long> colImport;
+    TableColumn<Country, Float> colImport;
     @FXML
     TableColumn<Country, String> colUnemploymentRate;
     @FXML
@@ -110,24 +110,24 @@ public class WindowController extends BaseController implements Initializable {
         mainTable.setRowFactory(new TableRowDoubleClickFactory<>(country -> Main.showCountry(report, country)));
 
 
-        setFactory(colCountry, "officialName");
+        setFactory(colCountry, Country::getOfficialName);
         colPopulation.setCellValueFactory(new KmgCellValueFactory<>(Country::getPopulation));
         colGDP.setCellValueFactory(new KmgCellValueFactory<>(Country::getActualSupply));
-        setFactory(colConsumption, "actualDemand");
+        setFactory(colConsumption, Country::getActualDemand);
         colConsumption.setVisible(false);
         colGDPPer.setCellValueFactory(new KmgCellValueFactory<>(Country::getGdpPerCapita));
-        setFactory(colGDPPlace, "GDPPlace");
+        setFactory(colGDPPlace, Country::getGDPPlace);
         colGDPPart.setCellValueFactory(new PercentageCellValueFactory<>(Country::getGDPPart));
-        setFactory(colGoldIncome, "goldIncome");
+        setFactory(colGoldIncome, Country::getGoldIncome);
 
-        setFactory(colWorkforce, "workforce");
+        setFactory(colWorkforce, Country::getWorkforce);
         colWorkforce.setVisible(false);
-
-        setFactory(colEmployment, "employment");
+        setFactory(colEmployment, Country::getEmployment);
         colEmployment.setVisible(false);
-        setFactory(colExport, "exported");
+
+        setFactory(colExport, Country::getExported);
         colExport.setVisible(false);
-        setFactory(colImport, "imported");
+        setFactory(colImport, Country::getImported);
         colImport.setVisible(false);
 
         colUnemploymentRate.setCellValueFactory(new PercentageCellValueFactory<>(Country::getUnemploymentRate));
@@ -140,8 +140,7 @@ public class WindowController extends BaseController implements Initializable {
 
         lblPlayer.setOnMouseClicked(e -> {
             if (report != null) {
-                new CountryController(report, report.getPlayerCountry());
-                //todo show country
+                Main.showCountry(report, report.getPlayerCountry());
             }
 
         });
@@ -231,7 +230,7 @@ public class WindowController extends BaseController implements Initializable {
                     System.out.println("Nash: total time is " + res + " seconds");
 
                 } catch (Exception e) {
-                    // TODO copy from
+                    // TODO error handling in GUI
                     e.printStackTrace();
                     System.out.println("Nash: ups... " + e.getLocalizedMessage());
                 }

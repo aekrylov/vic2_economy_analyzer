@@ -24,6 +24,9 @@ public class ProductController extends ChartsController {
             if (country.getTag().equals(Report.TOTAL_TAG))
                 continue;
             ProductStorage productStorage = country.findStorage(product.getName());
+            if (productStorage == null)
+                continue;
+
             PieChart.Data temp = new PieChart.Data(country.getTag(), getter.apply(productStorage));
             pieChartData.add(temp);
             total += getter.apply(productStorage);
@@ -33,7 +36,8 @@ public class ProductController extends ChartsController {
         String title = String.format("%s %s (%.1f items, %.1f£)", name, product.getName(), total, totalSum);
 
         Function<PieChart.Data, String> onEnter = data ->
-                String.format("%s: %.2f items", report.getCountry(data.getName()).getOfficialName(), data.getPieValue());
+                String.format("%s: %.2f items, %.2f£",
+                        report.getCountry(data.getName()).getOfficialName(), data.getPieValue(), data.getPieValue() * product.price);
 
         Consumer<PieChart.Data> onClick = data -> Main.showCountry(report, report.getCountry(data.getName()));
 
@@ -53,7 +57,7 @@ public class ProductController extends ChartsController {
         addUniChart("worldmarketPool", 0, 4, "worldmarketPool ");
         addUniChart("actualSoldWorld", 1, 4, "actualSoldWorld ");
 */
-        addUniChart(ProductStorage::getSavedCountrySupply, 0, 6, "savedSupply ");
+        addUniChart(ProductStorage::getTotalSupply, 0, 6, "Total Supply of ");
 
     }
 }

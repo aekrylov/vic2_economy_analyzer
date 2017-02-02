@@ -9,7 +9,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
-import javafx.scene.paint.Color;
 import main.Report;
 
 import java.util.Comparator;
@@ -42,6 +41,7 @@ public class ChartsController extends BaseController {
         scrollPane.setContent(grid);
 
         scene = new Scene(scrollPane, 1200, 950);
+        scene.getStylesheets().add("gui/charts.css");
 
     }
 
@@ -67,14 +67,20 @@ public class ChartsController extends BaseController {
 
         chart.setTitle(title);
         final Label caption = new Label("");
-        //todo move to css
-        caption.setTextFill(Color.DARKORANGE);
-        caption.setStyle("-fx-font: 20 arial;");
+        caption.getStyleClass().add("chart-caption");
 
         grid.add(chart, i, j);
         grid.add(caption, i, j + 1);
 
+        Double totalValue = chart.getData().stream()
+                .map(PieChart.Data::getPieValue)
+                .reduce(0., (d1, d2) -> d1 + d2);
+
         for (final PieChart.Data data : chart.getData()) {
+            if (data.getPieValue() / totalValue < .001) {
+                data.getNode().setVisible(false);
+                continue;
+            }
             data.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED,
                     e -> caption.setText(onEnter.apply(data)));
             data.getNode().addEventHandler(MouseEvent.MOUSE_CLICKED,

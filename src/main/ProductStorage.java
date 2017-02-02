@@ -36,8 +36,8 @@ public class ProductStorage extends EconomySubject {
         return actualDemand * product.price;
     }
 
-    public double getSavedSupplyPounds() {
-        return savedSupply * product.price;
+    public double getTotalSupplyPounds() {
+        return totalSupply * product.price;
     }
 	
 }

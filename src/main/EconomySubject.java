@@ -21,14 +21,14 @@ public abstract class EconomySubject {
     /**
      * It is total supply for that good in country (including unsold), in pieces
      */
-    float savedSupply;
+    float totalSupply;
 
     public float getActualSupply() {
         return actualSupply;
     }
 
-    public float getSavedCountrySupply() {
-        return savedSupply;
+    public float getTotalSupply() {
+        return totalSupply;
     }
 
     public float getActualDemand() {

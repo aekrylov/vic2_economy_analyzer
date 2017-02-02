@@ -2,10 +2,7 @@ package gui;
 
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
-import main.Country;
-import main.Product;
-import main.ProductStorage;
-import main.Report;
+import main.*;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -19,10 +16,7 @@ public class CountryController extends ChartsController {
         return scene;
     }
 
-    private void addUniChart(Function<ProductStorage, Float> getter, int column, int row, String name) {
-        //todo country total
-        //todo items
-
+    private void addUniChart(Function<EconomySubject, Float> getter, int column, int row, String name) {
         List<PieChart.Data> pieChartData = country.getStorage().stream()
                 .filter(productStorage -> getter.apply(productStorage) > 0)
                 .map(productStorage -> new PieChart.Data(productStorage.product.getName(), getter.apply(productStorage) * productStorage.getPrice()))
@@ -42,7 +36,7 @@ public class CountryController extends ChartsController {
             } else return "findStorage(data.getName()) returned NULL";
         };
 
-        String title = name + " of " + country.getOfficialName(); // + " (" + (long) countryField.getFloat(country) + "£)";
+        String title = String.format("%s of %s (%.1f£)", name, country.getOfficialName(), getter.apply(country));
         addChart(pieChartData, column, row, title, onEnter, onClick);
     }
 
@@ -50,12 +44,12 @@ public class CountryController extends ChartsController {
         super(report);
         this.country = country;
 
-        addUniChart(ProductStorage::getActualSupply, 0, 0, "Production");
-        addUniChart(ProductStorage::getActualDemand, 0, 2, "Consumption");
-        addUniChart(ProductStorage::getExported, 1, 0, "Export");
-        addUniChart(ProductStorage::getImported, 1, 2, "Import");
+        addUniChart(EconomySubject::getActualSupply, 0, 0, "Production");
+        addUniChart(EconomySubject::getActualDemand, 0, 2, "Consumption");
+        addUniChart(EconomySubject::getExported, 1, 0, "Export");
+        addUniChart(EconomySubject::getImported, 1, 2, "Import");
         //addUniChart(report, country, "MaxDemand",2,0, "MaxDemand");
-        addUniChart(ProductStorage::getSavedCountrySupply, 0, 4, "Total Supply");
+        addUniChart(EconomySubject::getTotalSupply, 0, 4, "Total Supply");
     }
 }
 

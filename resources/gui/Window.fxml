@@ -10,16 +10,14 @@
                prefWidth="1173.0" style="&#10;&#10;" tableMenuButtonVisible="true">
       <columns>
         <TableColumn prefWidth="276.0" text="Country" fx:id="colCountry"/>
-        <TableColumn id="colPopulation" prefWidth="114.0"
-                     style="&#10;&#10;&#10;&#10;&#10;" text="Population" fx:id="colPopulation"/>
-        <TableColumn prefWidth="95.0" text="GDP" fx:id="colGDP"/>
-        <TableColumn prefWidth="126.0" style="&#10;&#10;" text="Consumption"
-                     fx:id="colConsumption"/>
+        <TableColumn id="colPopulation" prefWidth="114.0" text="Population" fx:id="colPopulation"/>
+        <TableColumn prefWidth="126.0" text="Consumption" fx:id="colConsumption"/>
         <TableColumn prefWidth="93.0" text="Export" fx:id="colExport"/>
         <TableColumn prefWidth="84.0" text="Import" fx:id="colImport"/>
+        <TableColumn prefWidth="95.0" text="GDP" fx:id="colGDP"/>
         <TableColumn prefWidth="147.0" text="GDP per capita" fx:id="colGDPPer"/>
-        <TableColumn prefWidth="107.0" text="GDP place" fx:id="colGDPPlace"/>
-        <TableColumn prefWidth="112.0" text="GDP part %" fx:id="colGDPPart"/>
+        <TableColumn prefWidth="107.0" text="GDP #" fx:id="colGDPPlace"/>
+        <TableColumn prefWidth="112.0" text="GDP %" fx:id="colGDPPart"/>
         <TableColumn prefWidth="131.0" text="Gold income" fx:id="colGoldIncome"/>
         <TableColumn prefWidth="47.0" text="Workforce" fx:id="colWorkforce"/>
         <TableColumn prefWidth="18.0" text="Employed" fx:id="colEmployment"/>

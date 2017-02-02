@@ -39,7 +39,7 @@ public class Product {
      */
     public float actualBought;
     /**
-     * global, in pieces, how much was throwed to global market
+     * global, in pieces, how much was thrown to global market
      */
     public float worldmarketPool;
     /**
