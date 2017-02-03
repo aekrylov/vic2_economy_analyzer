@@ -106,7 +106,12 @@ public class Report {
     }
 
     public Product findProduct(String name) {
-        return productMap.get(name);
+        Product tmp = productMap.get(name);
+        if (tmp != null)
+            return tmp;
+
+        //handle convoys
+        return productMap.get(name + "_convoy");
     }
 
     /**
@@ -351,10 +356,25 @@ public class Report {
             List<ObjectVariable> ghr;
             for (GenericObject stateObject : countryObject.children) {
                 if (stateObject.name.equalsIgnoreCase("state"))
-                    for (GenericObject everyBuilding : stateObject.getChildren("state_buildings")) {
-                        //todo here factory stockpile is stored
-                        //if factory stockpile equals to its consumption then we can calculate factory consumption easily
-                        List<GenericObject> currentLevel = everyBuilding.getChildren("employment");
+                    for (GenericObject building : stateObject.getChildren("state_buildings")) {
+
+                        if (building.getValue("building").endsWith("factory")) {
+                            //count factory output
+                            String productName = building.getValue("building").replace("_factory", "");
+                            Product output = findProduct(productName);
+                            country.incRealSupply(output, Float.parseFloat(building.getValue("produces")));
+                            //todo check leftover
+
+                            GenericObject stockpile = building.getChild("stockpile");
+
+                            //assuming that factory stockpile is close to its consumption the previous day
+                            for (ObjectVariable good : stockpile.values) {
+                                //todo maintenance goods?
+                                country.incRealSupply(findProduct(good.getName()), -Float.parseFloat(good.getValue()));
+                            }
+                        }
+
+                        List<GenericObject> currentLevel = building.getChildren("employment");
                         if (currentLevel != null && currentLevel.size() > 0) {
                             currentLevel = currentLevel.get(0).getChildren("employees");
                             if (currentLevel != null && currentLevel.size() > 0) {
@@ -415,7 +435,7 @@ public class Report {
                     } else if (object.name.equalsIgnoreCase("clerks") || object.name.equalsIgnoreCase("craftsmen")) {
                         owner.workforceFactory += popSize;
                     }
-                    //todo count artisan consumption here
+
                     /**
                      * Example:
                      * 	artisans=
@@ -445,11 +465,30 @@ public class Report {
                      ...
                      }
                      */
+                    else if (object.name.equalsIgnoreCase("artisans") && object.containsValue("production_type")) {
+                        String productName = getProductNameArtisans(object.getValue("production_type"));
+                        Product output = findProduct(productName);
+                        owner.incRealSupply(output, Float.parseFloat(object.getValue("current_producing")));
+                        //todo throttle, leftover?
+
+                        GenericObject stockpile = object.getChild("stockpile");
+                        if (stockpile != null) {
+                            for (ObjectVariable good : stockpile.values) {
+                                owner.incRealSupply(findProduct(good.getName()), -Float.parseFloat(good.getValue()));
+                            }
+                        }
+                    }
                 } else {
-                    if (object.name.equalsIgnoreCase("RGO")) {
+                    if (object.name.equalsIgnoreCase("rgo")) {
+                        //todo exact rgo output is not shown, we can guess based on last_income
+                        Product output = findProduct(object.getValue("goods_type"));
+                        float lastIncome = Float.parseFloat(object.getValue("last_income")) / 1000;
+                        Float value = lastIncome / output.getPrice();
+                        owner.incRealSupply(output, value);
+
                         // gold income calculation
                         if (object.values.get(1).getValue().equalsIgnoreCase("precious_metal"))
-                            owner.goldIncome += Float.valueOf(object.values.get(0).getValue()) / 1000;
+                            owner.goldIncome += lastIncome;
 
                         //count RGO employees
                         try {
@@ -461,6 +500,7 @@ public class Report {
                             }
 
                         } catch (NullPointerException | ArrayIndexOutOfBoundsException ignored) {
+                            System.err.println(ignored);
                         }
 
                     }
@@ -507,6 +547,16 @@ public class Report {
         if (!result) System.out.println("Nash: failed to read " + goodsPath);
         return result;
 
+    }
+
+    private static String getProductNameArtisans(String productionType) {
+        final List<String> convoys = Arrays.asList("steamer", "clipper");
+        String name = productionType.replace("artisan_", "").replace("winery", "wine");
+        if (convoys.contains(name)) {
+            name = name + "_convoy";
+        }
+
+        return name;
     }
 
 }

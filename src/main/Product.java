@@ -48,7 +48,6 @@ public class Product {
     String name = "";
 
     public Product(String iname, float iprice) {
-        super();
         this.name = iname;
         this.price = iprice;
     }
@@ -153,4 +152,13 @@ public class Product {
         this.actualSoldWorld = actualSoldWorld;
     }
 
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Product && name.equals(((Product) obj).name);
+    }
 }

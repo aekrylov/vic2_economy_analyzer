@@ -214,6 +214,28 @@ public final class GenericObject implements WritableObject, Cloneable {
     }
 
     /**
+     * Returns value of the child variable with given name
+     *
+     * @param name variable name
+     * @return value, or null if variable with such name is not found
+     */
+    public String getValue(String name) {
+        for (ObjectVariable variable : values) {
+            if (variable.getName().equals(name))
+                return variable.getValue();
+        }
+        return null;
+    }
+
+    public boolean containsValue(String name) {
+        for (ObjectVariable variable : values) {
+            if (variable.getName().equals(name))
+                return true;
+        }
+        return false;
+    }
+
+    /**
      * Gets the first child variable with the given name.
      * @return the named child variable in string form.
      */

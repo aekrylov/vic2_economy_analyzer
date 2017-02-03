@@ -69,6 +69,10 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     TableColumn<Country, String> colGDP;
     @FXML
+    TableColumn<Country, Float> colRealGDP;
+    @FXML
+    TableColumn<Country, Float> colGdpWithDeductions;
+    @FXML
     TableColumn<Country, String> colGDPPer;
     @FXML
     TableColumn<Country, Integer> colGDPPlace;
@@ -113,6 +117,8 @@ public class WindowController extends BaseController implements Initializable {
         setFactory(colCountry, Country::getOfficialName);
         colPopulation.setCellValueFactory(new KmgCellValueFactory<>(Country::getPopulation));
         colGDP.setCellValueFactory(new KmgCellValueFactory<>(Country::getActualSupply));
+        setFactory(colRealGDP, Country::getRealGdp);
+        setFactory(colGdpWithDeductions, Country::getGdpWithDeductions);
         setFactory(colConsumption, Country::getActualDemand);
         colConsumption.setVisible(false);
         colGDPPer.setCellValueFactory(new KmgCellValueFactory<>(Country::getGdpPerCapita));
