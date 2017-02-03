@@ -43,8 +43,17 @@ public abstract class EconomySubject {
         return imported;
     }
 
+    public void incActualSupply(float value) {
+        actualSupply += value;
+    }
+
     public void incTotalSupply(float value) {
         totalSupply += value;
     }
+
+    public void incExported(float value) {
+        exported += value;
+    }
+
 
 }

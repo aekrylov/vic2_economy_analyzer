@@ -358,11 +358,15 @@ public class Report {
                 if (stateObject.name.equalsIgnoreCase("state"))
                     for (GenericObject building : stateObject.getChildren("state_buildings")) {
 
-                        if (building.getValue("building").endsWith("factory")) {
+                        Product output = findProduct(getProductNameFactory(building.getString("building")));
+                        if (output != null) {
                             //count factory output
-                            String productName = building.getValue("building").replace("_factory", "");
-                            Product output = findProduct(productName);
-                            country.incRealSupply(output, Float.parseFloat(building.getValue("produces")));
+                            float supply = Float.parseFloat(building.getString("produces"));
+                            float sold = Float.parseFloat(building.getString("last_income")) / 1000 / output.getPrice();
+
+                            ProductStorage storage = country.getRealStorage(output);
+                            storage.incTotalSupply(supply);
+                            storage.incActualSupply(sold);
                             //todo check leftover
 
                             GenericObject stockpile = building.getChild("stockpile");
@@ -434,41 +438,20 @@ public class Report {
                         owner.workforceRGO += popSize;
                     } else if (object.name.equalsIgnoreCase("clerks") || object.name.equalsIgnoreCase("craftsmen")) {
                         owner.workforceFactory += popSize;
-                    }
-
-                    /**
-                     * Example:
-                     * 	artisans=
-                     {
-                     id=25665
-                     size=941
-                     yankee=protestant
-                     money=430.74304
-                     ...
-                     production_type="artisan_cement"
-                     stockpile=
-                     {
-                     coal=0.30725
-                     }
-                     need=
-                     {
-                     coal=0.30725
-                     }
-                     last_spending=700.50049
-                     current_producing=0.02560
-                     percent_afforded=1.00000
-                     percent_sold_domestic=0.00412
-                     percent_sold_export=0.99756
-                     leftover=0.03918
-                     throttle=0.27243
-                     needs_cost=700.50049
-                     ...
-                     }
-                     */
-                    else if (object.name.equalsIgnoreCase("artisans") && object.containsValue("production_type")) {
-                        String productName = getProductNameArtisans(object.getValue("production_type"));
+                    } else if (object.name.equalsIgnoreCase("artisans") && object.containsValue("production_type")) {
+                        String productName = getProductNameArtisans(object.getString("production_type"));
                         Product output = findProduct(productName);
-                        owner.incRealSupply(output, Float.parseFloat(object.getValue("current_producing")));
+
+                        //todo incorrect
+                        //float supply = Float.parseFloat(object.getString("current_producing"));
+                        //float soldDomestic = supply * Float.parseFloat(object.getString("percent_sold_domestic"));
+                        //float soldExport = supply * Float.parseFloat(object.getString("percent_sold_export"));
+
+                        float sold = Float.parseFloat(object.getString("production_income")) / 1000 / output.getPrice();
+
+                        ProductStorage storage = owner.getRealStorage(output);
+                        //storage.incTotalSupply(supply);
+                        storage.incActualSupply(sold);
                         //todo throttle, leftover?
 
                         GenericObject stockpile = object.getChild("stockpile");
@@ -480,11 +463,11 @@ public class Report {
                     }
                 } else {
                     if (object.name.equalsIgnoreCase("rgo")) {
-                        //todo exact rgo output is not shown, we can guess based on last_income
-                        Product output = findProduct(object.getValue("goods_type"));
-                        float lastIncome = Float.parseFloat(object.getValue("last_income")) / 1000;
-                        Float value = lastIncome / output.getPrice();
-                        owner.incRealSupply(output, value);
+                        //exact rgo output is not shown, we can guess based on last_income
+                        Product output = findProduct(object.getString("goods_type"));
+                        double lastIncome = object.getDouble("last_income") / 1000;
+                        double sold = lastIncome / output.getPrice();
+                        owner.incRealSupply(output, (float) sold);
 
                         // gold income calculation
                         if (object.values.get(1).getValue().equalsIgnoreCase("precious_metal"))
@@ -557,6 +540,11 @@ public class Report {
         }
 
         return name;
+    }
+
+    private static String getProductNameFactory(String buildingType) {
+        buildingType = buildingType.replaceAll("(_mill|_factory)", "");
+        return getProductNameArtisans(buildingType);
     }
 
 }
