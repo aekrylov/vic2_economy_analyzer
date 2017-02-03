@@ -58,21 +58,21 @@ public class GoodsListController extends BaseController implements Initializable
         
         //add double click listener
         productsTable.setRowFactory(new TableRowDoubleClickFactory<>(product -> Main.showProduct(report, product)));
-        
-        setFactory(colName, "name");
-        setFactory(colConsumption, "Consumption");
-        setFactory(colRealSupply, "RealSupply");
-        setFactory(colActualBought, "ActualBought");
+
+        setFactory(colName, Product::getName);
+        setFactory(colConsumption, Product::getConsumption);
+        setFactory(colRealSupply, Product::getSupply);
+        setFactory(colActualBought, Product::getActualBought);
         colActualBought.setVisible(false);
-        setFactory(colAffordable, "Affordable");
-        setFactory(colMaxDemand, "MaxDemand");
-        setFactory(colBasePrice, "BasePrice");
-        setFactory(colMinPrice, "MinPrice");
-        setFactory(colMaxPrice, "MaxPrice");
-        setFactory(colPrice, "Price");
-        setFactory(colTrend, "Trend");
-        setFactory(colOverproduced, "Overproduced");
-        setFactory(colInflation, "Inflation");
+        setFactory(colAffordable, Product::getDemand);
+        setFactory(colMaxDemand, Product::getMaxDemand);
+        setFactory(colBasePrice, Product::getBasePrice);
+        setFactory(colMinPrice, Product::getMinPrice);
+        setFactory(colMaxPrice, Product::getMaxPrice);
+        setFactory(colPrice, Product::getPrice);
+        setFactory(colTrend, Product::getTrend);
+        setFactory(colOverproduced, Product::getOverproduced);
+        setFactory(colInflation, Product::getInflation);
     }
 
     public void setReport(Report report) {
@@ -82,15 +82,16 @@ public class GoodsListController extends BaseController implements Initializable
     public void fillTable(Collection<Product> products) {
         productsTableItems.clear();
 
+        //todo is it necessary?
         Product total = new Product("Total (pounds)", 0);
         for (Product product : products) {
-            total.supply += product.supply * product.price;
-            total.consumption += product.consumption * product.price;
-            total.affordable += product.affordable * product.price;
-            total.maxDemand += product.maxDemand * product.price;
-            total.basePrice += product.basePrice;
-            total.price += product.price;
-            total.actualBought += product.actualBought * product.price;
+            total.supply += product.getSupply() * product.price;
+            total.consumption += product.getConsumption() * product.price;
+            total.demand += product.getDemand() * product.price;
+            total.maxDemand += product.getMaxDemand() * product.price;
+            total.basePrice += product.getBasePrice();
+            total.price += product.getPrice();
+            total.actualBought += product.getActualBought() * product.price;
 
         }
         total.basePrice = total.basePrice / products.size();

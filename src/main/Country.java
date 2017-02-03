@@ -59,6 +59,12 @@ public class Country extends EconomySubject implements Comparable<Country> {
     private String tag;
 
     /**
+     * WIP real GDP
+     */
+    private float realGdp;
+    private Map<ProductStorage, String> producersConsumption = new HashMap<>();
+
+    /**
      * Summ for country in pounds
      */
 

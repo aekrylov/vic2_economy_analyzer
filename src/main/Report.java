@@ -5,10 +5,10 @@ import eug.shared.GenericObject;
 import eug.shared.ObjectVariable;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 public class Report {
@@ -56,9 +56,10 @@ public class Report {
     }
 
     /**
-     * Installpath in, list of csv string names out. Half finished, will probably not be completed.
+     * Returns list localisation/*.csv file for gicen path
+     * Half finished, will probably not be completed.
      */
-    private static List<String> listFiles(String path) throws NullPointerException {
+    private static List<File> getLocalisations(String path) throws NullPointerException {
 
         // Directory path here
         //	  String path = "."; 
@@ -72,15 +73,13 @@ public class Report {
 				"newspaper_text.csv",
 		"newstext_3_01.csv" };*/
 
-        File folder = new File(path + "/localisation");
+        //the correct platform independent way to join paths
+        File folder = Paths.get(path, "localisation").toFile();
         File[] files = folder.listFiles();
 
         return Arrays.stream(files)
                 .filter(file -> file.isFile() && file.getName().toLowerCase().endsWith(".csv"))
-                .map(File::getName)
                 .collect(Collectors.toList());
-
-
     }
 
     private Map<String, Product> productMap = new HashMap<>();
@@ -90,22 +89,20 @@ public class Report {
      * Reads the given file and for any given line checks if the tag is equal to the
      * one in countrylist.
      *
-     * @param filename
+     * @param file file to read
      * @throws IOException
      */
-    private void readCountryNames(String filename) throws IOException {
-        /* The same reader as in SaveGameReader */
-        //InputStreamReader reader = new InputStreamReader(new FileInputStream(filename), "ISO8859_1"); // This encoding seems to work for ö and ü
-        InputStreamReader reader = new InputStreamReader(new FileInputStream(filename), "Cp1251"); // This encoding seems to work for ö and ü
-        BufferedReader scanner = new BufferedReader(reader);
+    private void readCountryNames(File file) throws IOException {
+        InputStreamReader reader = new InputStreamReader(new FileInputStream(file), "Cp1251"); // This encoding seems to work for ö and ü
+        BufferedReader in = new BufferedReader(reader);
 
         String line;
-        while ((line = scanner.readLine()) != null) {
+        while ((line = in.readLine()) != null) {
             String[] dataArray = line.split(";");
 
             setCountryName(dataArray[0], dataArray[1]);
         }
-        scanner.close();
+        in.close();
     }
 
     public Product findProduct(String name) {
@@ -118,28 +115,18 @@ public class Report {
     private void readLocalisations(String path) {
 
         try {
-            List<String> loclist = listFiles(path);
-            List<String> modLoclist = null;
+            List<File> loclist = getLocalisations(path);
 
-
-            if (modPath != null && !modPath.isEmpty()) {
-                if (new File(modPath).exists())
-                    modLoclist = listFiles(modPath);
+            if (modPath != null && new File(modPath).exists()) {
+                loclist.addAll(getLocalisations(modPath));
             }
-            for (String filesForLoad : loclist) {
-                readCountryNames(path + "/localisation/" + filesForLoad);
-                //readCountryNames(localizationPatch+"/" + filesForLoad);
 
-            }
-            if (modLoclist != null) {
-                for (String filesForLoad : modLoclist) {
-                    readCountryNames(modPath + "/localisation/" + filesForLoad);
-                    //readCountryNames(localizationPatch+"/" + filesForLoad);
-
-                }
+            for (File csv : loclist) {
+                readCountryNames(csv);
             }
 
         } catch (NullPointerException | IOException e) {
+            //todo error handling
             //getErrorLabel().setText(getErrorLabel().getText() + " Some or all the of the localisation files could not be found. ");
             System.out.println("Nash: Some or all the of the localisation files could not be loaded");
         }
@@ -259,8 +246,6 @@ public class Report {
     }
 
     private GenericObject readSaveHead(String savePatch) {
-        //localizationPatch=localPatch;
-
 
         //------------------------------------
         // global data loading
@@ -271,32 +256,28 @@ public class Report {
         // price loading
         List<ObjectVariable> price_pool = worldmarket.getChild("price_pool").values;
         for (ObjectVariable iter : price_pool) {
-            Product product = new Product(iter.varname, Float.valueOf(iter.getValue()));
+            Product product = new Product(iter.getName(), Float.valueOf(iter.getValue()));
             productMap.put(product.getName(), product);
         }
 
         //load global product data
-        Map<String, String> fieldMap = new HashMap<>();
-        fieldMap.put("price_change", "trend");
-        fieldMap.put("demand", "maxDemand");
-        fieldMap.put("real_demand", "affordable");
-        fieldMap.put("actual_sold", "consumption");
-        fieldMap.put("supply_pool", "supply");
-        fieldMap.put("actual_sold_world", "actualSoldWorld");
-        fieldMap.put("worldmarket_pool", "worldmarketPool");
+        Map<String, BiConsumer<Product, Float>> fieldMap = new HashMap<>();
+        fieldMap.put("price_change", Product::setTrend);
+        fieldMap.put("demand", Product::setMaxDemand);
+        fieldMap.put("real_demand", Product::setDemand);
+        fieldMap.put("actual_sold", Product::setConsumption);
+        fieldMap.put("supply_pool", Product::setSupply);
+        fieldMap.put("actual_sold_world", Product::setActualSoldWorld);
+        fieldMap.put("worldmarket_pool", Product::setWorldmarketPool);
 
-        try {
-            for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
-                GenericObject object = worldmarket.getChild(entry.getKey());
-                Field field = Product.class.getField(entry.getValue());
+        for (Map.Entry<String, BiConsumer<Product, Float>> entry : fieldMap.entrySet()) {
+            GenericObject object = worldmarket.getChild(entry.getKey());
+            BiConsumer<Product, Float> setter = entry.getValue();
 
-                List<ObjectVariable> list = object.values;
-                for (ObjectVariable variable : list) {
-                    field.setFloat(productMap.get(variable.varname), Float.valueOf(variable.getValue()));
-                }
+            List<ObjectVariable> list = object.values;
+            for (ObjectVariable var : list) {
+                setter.accept(productMap.get(var.getName()), Float.valueOf(var.getValue()));
             }
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
         }
 
         return eugSave;
@@ -371,6 +352,8 @@ public class Report {
             for (GenericObject stateObject : countryObject.children) {
                 if (stateObject.name.equalsIgnoreCase("state"))
                     for (GenericObject everyBuilding : stateObject.getChildren("state_buildings")) {
+                        //todo here factory stockpile is stored
+                        //if factory stockpile equals to its consumption then we can calculate factory consumption easily
                         List<GenericObject> currentLevel = everyBuilding.getChildren("employment");
                         if (currentLevel != null && currentLevel.size() > 0) {
                             currentLevel = currentLevel.get(0).getChildren("employees");
@@ -432,6 +415,36 @@ public class Report {
                     } else if (object.name.equalsIgnoreCase("clerks") || object.name.equalsIgnoreCase("craftsmen")) {
                         owner.workforceFactory += popSize;
                     }
+                    //todo count artisan consumption here
+                    /**
+                     * Example:
+                     * 	artisans=
+                     {
+                     id=25665
+                     size=941
+                     yankee=protestant
+                     money=430.74304
+                     ...
+                     production_type="artisan_cement"
+                     stockpile=
+                     {
+                     coal=0.30725
+                     }
+                     need=
+                     {
+                     coal=0.30725
+                     }
+                     last_spending=700.50049
+                     current_producing=0.02560
+                     percent_afforded=1.00000
+                     percent_sold_domestic=0.00412
+                     percent_sold_export=0.99756
+                     leftover=0.03918
+                     throttle=0.27243
+                     needs_cost=700.50049
+                     ...
+                     }
+                     */
                 } else {
                     if (object.name.equalsIgnoreCase("RGO")) {
                         // gold income calculation
