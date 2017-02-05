@@ -237,7 +237,9 @@ public class Report {
             totalCountry.imported += country.imported;
             totalCountry.actualSupply += country.actualSupply;
 
-            for (ProductStorage storage : country.getStorage()) {
+            totalCountry.setRealGdp(totalCountry.getRealGdp() + country.getRealGdp());
+
+            for (ProductStorage storage : country.getStorage().values()) {
                 Product product = findProduct(storage.product.name);
                 product.actualBought += storage.actualSupply;
 

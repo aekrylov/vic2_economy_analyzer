@@ -3,7 +3,6 @@ package main;
 import javafx.scene.image.Image;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,8 +103,8 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return realSupplyStorage.get(product.getName());
     }
 
-    public Collection<ProductStorage> getRealStorage() {
-        return realSupplyStorage.values();
+    public Map<String, ProductStorage> getRealStorage() {
+        return realSupplyStorage;
     }
 
     public Country(String tag) {
@@ -203,7 +202,8 @@ public class Country extends EconomySubject implements Comparable<Country> {
         imported = 0;
         exported = 0;
 
-        realGdp = 0;
+        if (!tag.equals(Report.TOTAL_TAG))
+            realGdp = 0;
         gdpWithDeductions = 0;
     }
 
@@ -212,7 +212,7 @@ public class Country extends EconomySubject implements Comparable<Country> {
      */
     void innerCalculation() {
         clearCalculated();
-        for (ProductStorage productStorage : getStorage()) {
+        for (ProductStorage productStorage : getStorage().values()) {
 
             // calculating actual supply
             float thrownToMarket = (productStorage.totalSupply - productStorage.actualSoldDomestic);
@@ -252,9 +252,11 @@ public class Country extends EconomySubject implements Comparable<Country> {
         unemploymentRate = (workforceRGO - employmentRGO) * 4 / (float) population * 100;
 
         //calc real gdp
-        for (ProductStorage storage : realSupplyStorage.values()) {
-            realGdp += storage.getActualSupplyPounds();
-        }
+        //todo
+        if (!tag.equals(Report.TOTAL_TAG))
+            for (ProductStorage storage : realSupplyStorage.values()) {
+                realGdp += storage.getActualSupplyPounds();
+            }
     }
 
     @Override
@@ -263,8 +265,8 @@ public class Country extends EconomySubject implements Comparable<Country> {
                 + ", flag=" + flag + "]";
     }
 
-    public Collection<ProductStorage> getStorage() {
-        return storageMap.values();
+    public Map<String, ProductStorage> getStorage() {
+        return storageMap;
     }
 
     public void addStorage(ProductStorage product) {
@@ -273,6 +275,10 @@ public class Country extends EconomySubject implements Comparable<Country> {
 
     public float getRealGdp() {
         return realGdp;
+    }
+
+    public void setRealGdp(float realGdp) {
+        this.realGdp = realGdp;
     }
 
     public float getGdpWithDeductions() {
