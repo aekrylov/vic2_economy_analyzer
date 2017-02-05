@@ -1,7 +1,5 @@
 package main;
 
-import javafx.scene.image.Image;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +51,6 @@ public class Country extends EconomySubject implements Comparable<Country> {
      */
     float goldIncome;
     ArrayList<Province> provinces = new ArrayList<>();
-    private Image flag;
     private String tag;
 
     /**
@@ -87,9 +84,11 @@ public class Country extends EconomySubject implements Comparable<Country> {
         storage.incGdp(-value);
     }
 
+/*
     public void addSold(Product product, float value) {
         findStorage(product).incGdp(value);
     }
+*/
 
     public Country(String tag) {
         super();
@@ -117,14 +116,6 @@ public class Country extends EconomySubject implements Comparable<Country> {
 
     public long getEmployment() {
         return employmentRGO;
-    }
-
-    public Image getFlag() {
-        return flag;
-    }
-
-    public void setFlag(Image flag) {
-        this.flag = flag;
     }
 
     public float getGdpPerCapita() {
@@ -219,8 +210,7 @@ public class Country extends EconomySubject implements Comparable<Country> {
 
     @Override
     public String toString() {
-        return "Country [tag=" + tag + ", officialName=" + officialName
-                + ", flag=" + flag + "]";
+        return "Country [tag=" + tag + ", officialName=" + officialName + "]";
     }
 
     public Map<String, ProductStorage> getStorage() {
