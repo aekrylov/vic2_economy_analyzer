@@ -3,6 +3,8 @@ package gui;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.util.StringConverter;
 
 import java.util.function.Function;
 
@@ -21,5 +23,9 @@ public abstract class BaseController {
 
     protected static <T, S> void setFactory(TableColumn<T, S> column, Function<? super T, S> getter) {
         column.setCellValueFactory(features -> new ReadOnlyObjectWrapper<>(getter.apply(features.getValue())));
+    }
+
+    protected static <T, S> void setCellFactory(TableColumn<T, S> column, StringConverter<S> converter) {
+        column.setCellFactory(TextFieldTableCell.forTableColumn(converter));
     }
 }

@@ -23,6 +23,8 @@ public class Report {
 
     public static final String TOTAL_TAG = "TOT";
 
+    private static final List<String> convoys = Arrays.asList("steamer", "clipper");
+
     public static void setModPath(String modPath) {
         Report.modPath = modPath;
     }
@@ -111,7 +113,29 @@ public class Report {
             return tmp;
 
         //handle convoys
-        return productMap.get(name + "_convoy");
+        if (convoys.contains(name))
+            return productMap.get(name + "_convoy");
+
+        return null;
+    }
+
+    /**
+     * Returns product which name is a prefix of the given string.
+     * Performs {@code name.length} hash map searches in worst case
+     * Convoys are handled here
+     *
+     * @param str String to search for
+     * @return corresponding Product instance, or null if none found
+     */
+    private Product findProductPrefix(String str) {
+        if (str.isEmpty())
+            return null;
+
+        Product product = findProduct(str);
+        if (product == null)
+            product = findProductPrefix(str.substring(0, str.length() - 1));
+
+        return product;
     }
 
     /**
@@ -132,7 +156,6 @@ public class Report {
 
         } catch (NullPointerException | IOException e) {
             //todo error handling
-            //getErrorLabel().setText(getErrorLabel().getText() + " Some or all the of the localisation files could not be found. ");
             System.out.println("Nash: Some or all the of the localisation files could not be loaded");
         }
         //}
@@ -315,83 +338,69 @@ public class Report {
 
             // load savedCountrySupply (ts)
             GenericObject saved_country_supply = countryObject.getChild("saved_country_supply");
-            for (ObjectVariable productObject : saved_country_supply.values) {
-                Product tempProduct = findProduct(productObject.varname);
-                if (tempProduct != null) {
-                    ProductStorage tstorage = new ProductStorage(tempProduct);
-                    tstorage.totalSupply = Float.valueOf(productObject.getValue());
-                    country.addStorage(tstorage);
-                } else System.err.println("Nash: findProduct(productObject.varname) returned NULL");
+            for (ObjectVariable everyGood : saved_country_supply.values) {
+                ProductStorage storage = country.findStorage(everyGood.getName());
+                if (storage == null) {
+                    storage = new ProductStorage(findProduct(everyGood.getName()));
+                    country.addStorage(storage);
+                }
+
+                storage.totalSupply = Float.valueOf(everyGood.getValue());
             }
 
             // load max demand
             GenericObject foundMaxDemand = countryObject.getChild("domestic_demand_pool");
             for (ObjectVariable everyGood : foundMaxDemand.values) {
-                ProductStorage storage = country.findStorage(everyGood.varname);
-                if (storage != null) {
-                    storage.MaxDemand = Float.valueOf(everyGood.getValue());
-                } else {
-                    storage = new ProductStorage(findProduct(everyGood.varname));
-                    storage.MaxDemand = Float.valueOf(everyGood.getValue());
+                ProductStorage storage = country.findStorage(everyGood.getName());
+                if (storage == null) {
+                    storage = new ProductStorage(findProduct(everyGood.getName()));
                     country.addStorage(storage);
                 }
+
+                storage.MaxDemand = Float.valueOf(everyGood.getValue());
             }
 
             // load internal consumption
             GenericObject foundSold = countryObject.getChild("actual_sold_domestic");
             for (ObjectVariable everyGood : foundSold.values) {
-                ProductStorage storage = country.findStorage(everyGood.varname);
-                if (storage != null) {
-                    storage.actualSoldDomestic = Float.valueOf(everyGood.getValue());
-                    storage.actualDemand = storage.actualSoldDomestic;
-                } else {
-                    storage = new ProductStorage(findProduct(everyGood.varname));
-                    storage.actualSoldDomestic = Float.valueOf(everyGood.getValue());
-                    storage.actualDemand = storage.actualSoldDomestic;
+                ProductStorage storage = country.findStorage(everyGood.getName());
+                if (storage == null) {
+                    storage = new ProductStorage(findProduct(everyGood.getName()));
                     country.addStorage(storage);
                 }
+
+                storage.actualSoldDomestic = Float.valueOf(everyGood.getValue());
+                storage.actualDemand = storage.actualSoldDomestic;
             }
 
             //count factory workers
-            List<ObjectVariable> ghr;
-            for (GenericObject stateObject : countryObject.children) {
-                if (stateObject.name.equalsIgnoreCase("state"))
-                    for (GenericObject building : stateObject.getChildren("state_buildings")) {
+            for (GenericObject stateObject : countryObject.getChildren("state")) {
 
-                        Product output = findProduct(getProductNameFactory(building.getString("building")));
-                        if (output != null) {
-                            //count factory output
-                            float supply = Float.parseFloat(building.getString("produces"));
-                            float sold = Float.parseFloat(building.getString("last_income")) / 1000 / output.getPrice();
+                for (GenericObject building : stateObject.getChildren("state_buildings")) {
 
-                            ProductStorage storage = country.getRealStorage(output);
-                            storage.incTotalSupply(supply);
-                            storage.incActualSupply(sold);
-                            //todo check leftover
+                    //if it has employment, it is a factory
+                    GenericObject employment = building.getChild("employment");
+                    if (employment != null) {
+                        Product output = findProductPrefix(getProductNameFactory(building.getString("building")));
+                        //count factory output
+                        float supply = Float.parseFloat(building.getString("produces"));
+                        float sold = Float.parseFloat(building.getString("last_income")) / 1000 / output.getPrice();
 
-                            GenericObject stockpile = building.getChild("stockpile");
+                        ProductStorage storage = country.getRealStorage(output);
+                        storage.incTotalSupply(supply);
+                        storage.incActualSupply(sold);
+                        //todo check leftover
 
-                            //assuming that factory stockpile is close to its consumption the previous day
-                            for (ObjectVariable good : stockpile.values) {
-                                //todo maintenance goods?
-                                country.incRealSupply(findProduct(good.getName()), -Float.parseFloat(good.getValue()));
-                            }
+                        GenericObject stockpile = building.getChild("stockpile");
+
+                        //assuming that factory stockpile is close to its consumption the previous day
+                        for (ObjectVariable good : stockpile.values) {
+                            country.incRealSupply(findProduct(good.getName()), -Float.parseFloat(good.getValue()));
                         }
 
-                        List<GenericObject> currentLevel = building.getChildren("employment");
-                        if (currentLevel != null && currentLevel.size() > 0) {
-                            currentLevel = currentLevel.get(0).getChildren("employees");
-                            if (currentLevel != null && currentLevel.size() > 0) {
-                                for (GenericObject everyEmpl : currentLevel.get(0).children) {
-                                    ghr = everyEmpl.values;
-                                    if (ghr != null && ghr.size() > 0)
-                                        country.employmentFactory += Long.valueOf(ghr.get(0).getValue());
-
-                                    this.getClass();
-                                }
-                            }
-                        }
+                        country.employmentFactory += getEmployeeCount(building);
                     }
+                }
 
             }
 
@@ -470,21 +479,11 @@ public class Report {
                         owner.incRealSupply(output, (float) sold);
 
                         // gold income calculation
-                        if (object.values.get(1).getValue().equalsIgnoreCase("precious_metal"))
+                        if (output.getName().equalsIgnoreCase("precious_metal"))
                             owner.goldIncome += lastIncome;
 
                         //count RGO employees
-                        try {
-                            List<GenericObject> workers = object.children.get(0).children.get(0).children;
-                            for (GenericObject worker : workers) {
-                                if (worker.values != null)
-                                    if (worker.values.size() > 0)
-                                        owner.employmentRGO += Integer.valueOf(worker.values.get(0).getValue());
-                            }
-
-                        } catch (NullPointerException | ArrayIndexOutOfBoundsException ignored) {
-                            System.err.println(ignored);
-                        }
+                        owner.employmentRGO += getEmployeeCount(object);
 
                     }
 
@@ -533,7 +532,6 @@ public class Report {
     }
 
     private static String getProductNameArtisans(String productionType) {
-        final List<String> convoys = Arrays.asList("steamer", "clipper");
         String name = productionType.replace("artisan_", "").replace("winery", "wine");
         if (convoys.contains(name)) {
             name = name + "_convoy";
@@ -543,8 +541,31 @@ public class Report {
     }
 
     private static String getProductNameFactory(String buildingType) {
-        buildingType = buildingType.replaceAll("(_mill|_factory)", "");
-        return getProductNameArtisans(buildingType);
+        //Most of HoD factory names handled here
+        return getProductNameArtisans(buildingType.replaceAll("_([a-z]+[oe]ry|mill|[a-z]+yard)$", ""));
+    }
+
+    /**
+     * Adds up all employment->employees counts
+     *
+     * @param object object with employment child tag
+     * @return total count of employees on object, or 0 if object is not valid
+     */
+    private int getEmployeeCount(GenericObject object) {
+        int count = 0;
+
+        try {
+            List<GenericObject> workers = object.getChild("employment").getChild("employees").children;
+            for (GenericObject worker : workers) {
+                if (worker.getInt("count") > 0) {
+                    count += worker.getInt("count");
+                }
+            }
+
+        } catch (NullPointerException | ArrayIndexOutOfBoundsException ignored) {
+        }//if no tag is available
+
+        return count;
     }
 
 }

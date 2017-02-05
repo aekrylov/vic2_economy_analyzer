@@ -3,13 +3,16 @@
 Based on old [Nashetovich's code](http://oldforum.paradoxplaza.com/forum/showthread.php?715468) with minor changes, 
  so now it works with Java 8.
  
-**Tested with Oracle JDK 1.8 only** 
+**Tested with Oracle JRE 1.8 only** 
 
 ## Usage
 
->You should use **StartMe.bat** otherwise you can face "lack of memory" error.
->
->Select correct paths and press "Load". I use "Load" on autosave.v2 each month So I see how world is.
+1. Install [Java Runtime 8 or newer](https://java.com/download/) if it's not installed
+2. Download jar and bat file from [latest release](https://github.com/aekrylov/vic2_economy_analyzer/releases) into one folder
+3. Run bat file. You can also run jar file direcctly, but this can lead to "out of memory" error. 
+4. Specify savegame path (also you need to specify game install and mod paths for correct localisation) and press Load. 
+
+Double click on a table row (or single click on a chart item) opens detailed info window.
 
  
 ## To do list:

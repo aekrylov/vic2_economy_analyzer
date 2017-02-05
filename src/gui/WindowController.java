@@ -13,6 +13,7 @@ import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
 import main.*;
 
 import java.io.File;
@@ -353,5 +354,32 @@ class PercentageCellValueFactory<S> implements Callback<TableColumn.CellDataFeat
     @Override
     public ObservableValue<String> call(TableColumn.CellDataFeatures<S, String> param) {
         return new ReadOnlyStringWrapper(Wrapper.toPercentage(getter.apply(param.getValue())));
+    }
+}
+
+class KmgConverter extends StringConverter<Float> {
+
+    @Override
+    public String toString(Float object) {
+        return Wrapper.toKMG(object);
+    }
+
+    //don't need this
+    @Override
+    public Float fromString(String string) {
+        return null;
+    }
+}
+
+class PercentageConverter extends StringConverter<Float> {
+
+    @Override
+    public String toString(Float object) {
+        return Wrapper.toPercentage(object);
+    }
+
+    @Override
+    public Float fromString(String string) {
+        return null;
     }
 }
