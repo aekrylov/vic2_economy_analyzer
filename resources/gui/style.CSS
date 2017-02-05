@@ -229,3 +229,8 @@ Tonis Kasekamp
 .table-view {
     -fx-alignment: center_right;
 }
+
+.flag {
+    -fx-border-width: 1px;
+    -fx-border-color: #000;
+}

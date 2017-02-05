@@ -23,13 +23,18 @@ public class ProductController extends ChartsController {
         for (Country country : report.getCountryList()) {
             if (country.getTag().equals(Report.TOTAL_TAG))
                 continue;
-            ProductStorage productStorage = country.findStorage(product.getName());
+            ProductStorage productStorage = country.findStorage(product);
             if (productStorage == null)
                 continue;
 
-            PieChart.Data temp = new PieChart.Data(country.getTag(), getter.apply(productStorage));
+            float value = getter.apply(productStorage);
+            //filter negative gdp
+            if (value <= 0)
+                continue;
+
+            PieChart.Data temp = new PieChart.Data(country.getTag(), value);
             pieChartData.add(temp);
-            total += getter.apply(productStorage);
+            total += value;
         }
 
         totalSum = total * product.price;
@@ -47,17 +52,17 @@ public class ProductController extends ChartsController {
     ProductController(final Report report, Product product) {
         super(report);
         this.product = product;
-
-        addUniChart(ProductStorage::getActualSupply, 0, 0, "Producers of ");
+        addUniChart(ProductStorage::getGdp, 0, 0, "GDP of");
         addUniChart(ProductStorage::getActualDemand, 0, 2, "Consumers of ");
         addUniChart(ProductStorage::getExported, 1, 0, "Exporters of ");
         addUniChart(ProductStorage::getImported, 1, 2, "Importers of ");
-        //addUniChart("MaxDemand",2,0, "MaxDemand ");
+        //addUniChart("maxDemand",2,0, "maxDemand ");
 /*
         addUniChart("worldmarketPool", 0, 4, "worldmarketPool ");
         addUniChart("actualSoldWorld", 1, 4, "actualSoldWorld ");
 */
         addUniChart(ProductStorage::getTotalSupply, 0, 6, "Total Supply of ");
+        addUniChart(ProductStorage::getActualSupply, 1, 6, "Actual Supply of ");
 
     }
 }

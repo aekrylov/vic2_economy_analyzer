@@ -1,6 +1,7 @@
 package gui;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -8,12 +9,16 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 import main.*;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -57,19 +62,19 @@ public class WindowController extends BaseController implements Initializable {
     private GoodsListController goodsListController;
 
     @FXML
+    public TableColumn<Country, ImageView> colImage;
+    @FXML
     public TableColumn<Country, String> colCountry;
     @FXML
     public TableColumn<Country, Long> colPopulation;
     @FXML
     TableColumn<Country, Float> colConsumption;
     @FXML
-    TableColumn<Country, Float> colGDP;
+    TableColumn<Country, Float> colActualSupply;
     @FXML
-    TableColumn<Country, Float> colRealGDP;
-    /*
-        @FXML
-        TableColumn<Country, Float> colGdpWithDeductions;
-    */
+    TableColumn<Country, Float> colGdp;
+    @FXML
+    TableColumn<Country, Float> colActualSupplyWithDeductions;
     @FXML
     TableColumn<Country, Float> colGDPPer;
     @FXML
@@ -111,12 +116,25 @@ public class WindowController extends BaseController implements Initializable {
         //add row click handler
         mainTable.setRowFactory(new TableRowDoubleClickFactory<>(country -> Main.showCountry(report, country)));
 
+        colImage.setCellValueFactory(features -> {
+            String tag = features.getValue().getTag();
+            URL url = getClass().getResource("/flags/" + tag + ".png");
+            if (url == null)
+                return null;
+
+            Image image = new Image(url.toString());
+            ImageView iv = new ImageView(image);
+            iv.setPreserveRatio(true);
+            iv.setFitHeight(20);
+            iv.getStyleClass().add("flag");
+            return new SimpleObjectProperty<>(iv);
+        });
 
         setFactory(colCountry, Country::getOfficialName);
         setFactory(colPopulation, Country::getPopulation);
-        setFactory(colGDP, Country::getActualSupply);
-        setFactory(colRealGDP, Country::getRealGdp);
-        //setFactory(colGdpWithDeductions, Country::getGdpWithDeductions);
+        setFactory(colActualSupply, Country::getActualSupply);
+        setFactory(colGdp, Country::getGdp);
+        setFactory(colActualSupplyWithDeductions, Country::getActualSupplyWithDeductions);
         setFactory(colConsumption, Country::getActualDemand);
         setFactory(colGDPPer, Country::getGdpPerCapita);
         setFactory(colGDPPlace, Country::getGDPPlace);
@@ -129,13 +147,16 @@ public class WindowController extends BaseController implements Initializable {
         setFactory(colExport, Country::getExported);
         setFactory(colImport, Country::getImported);
 
-        setFactory(colUnemploymentRate, Country::getUnemploymentRate);
+        setFactory(colUnemploymentRate, Country::getUnemploymentRateRgo);
         setFactory(colUnemploymentRateFactory, Country::getUnemploymentRateFactory);
 
         setCellFactory(colPopulation, new KmgConverter<>());
-        setCellFactory(colGDP, new KmgConverter<>());
-        setCellFactory(colRealGDP, new KmgConverter<>());
+        setCellFactory(colActualSupply, new KmgConverter<>());
+        setCellFactory(colGdp, new KmgConverter<>());
         setCellFactory(colGDPPart, new PercentageConverter());
+        setCellFactory(colActualSupplyWithDeductions, new KmgConverter<>());
+        setCellFactory(colWorkforce, new KmgConverter<>());
+        setCellFactory(colEmployment, new KmgConverter<>());
         setCellFactory(colUnemploymentRate, new PercentageConverter());
         setCellFactory(colUnemploymentRateFactory, new PercentageConverter());
 
@@ -144,6 +165,7 @@ public class WindowController extends BaseController implements Initializable {
         colEmployment.setVisible(false);
         colExport.setVisible(false);
         colImport.setVisible(false);
+        colActualSupplyWithDeductions.setVisible(false);
 
         PathKeeper.checkPaths();
         tfLocalization.setText(PathKeeper.LOCALISATION_PATH);
@@ -210,17 +232,34 @@ public class WindowController extends BaseController implements Initializable {
 
                     float res = ((float) System.nanoTime() - startTime) / 1000000000;
                     System.out.println("Nash: total time is " + res + " seconds");
+                    Platform.runLater(() -> self.setLabels());
 
                 } catch (Exception e) {
                     // TODO error handling in GUI
                     e.printStackTrace();
                     System.out.println("Nash: ups... " + e.getLocalizedMessage());
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR, e.getLocalizedMessage(), ButtonType.OK);
+                        alert.setContentText(e.getLocalizedMessage());
+
+                        StringWriter sw = new StringWriter();
+                        PrintWriter pw = new PrintWriter(sw);
+                        e.printStackTrace(pw);
+
+/*
+                        TextArea text = new TextArea(sw.toString());
+                        text.setEditable(false);
+                        text.setWrapText(true);
+                        alert.getDialogPane().getChildren().add(text);
+*/
+
+                        alert.setContentText(sw.toString());
+                        alert.show();
+                    });
+                } finally {
+                    Platform.runLater(() -> setInterfaceEnabled(true));
                 }
 
-                Platform.runLater(() -> {
-                    self.setLabels();
-                    self.setInterfaceEnabled(true);
-                });
 
                 return 0;
             }

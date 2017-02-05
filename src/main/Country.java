@@ -16,20 +16,19 @@ public class Country extends EconomySubject implements Comparable<Country> {
     /**
      * Summ for country in pounds
      */
-    public long population;
+    protected long population;
     /**
      * Summ for country
      */
-    public long employmentFactory;
+    protected long employmentFactory;
     /**
      * Summ for country
      */
-    public long employmentRGO;
-    private float unemploymentRate;
-    /**
-     * Summ for country
-     */
+    protected long employmentRGO;
 
+    /**
+     * Summ for country
+     */
     public long workforceFactory;
     /**
      * Summ for country
@@ -58,53 +57,38 @@ public class Country extends EconomySubject implements Comparable<Country> {
     private String tag;
 
     /**
-     * WIP real GDP
+     * (Actual supply) - (producers stockpile)
      */
-    private float realGdp;
-    private float gdpWithDeductions;
+    private float actualSupplyWithDeductions;
 
-    private Map<String, ProductStorage> realSupplyStorage = new HashMap<>();
-    private Map<String, ProductStorage> deductions = new HashMap<>();
+    private Map<Product, Float> intermediate = new HashMap<>();
 
-    public void incRealSupply(Product product, float value) {
-        //todo
-        if (value < 0) {
-            return;
-        }
-        if (product == null) {
-            System.err.println("Product is null");
-        }
+    public void add(Country that) {
+        super.add(that);
+        population += that.population;
 
-        if (!realSupplyStorage.containsKey(product.getName())) {
-            ProductStorage storage = new ProductStorage(product);
+        goldIncome += that.goldIncome;
 
-            storage.actualSupply = value;
-            realSupplyStorage.put(product.getName(), storage);
-        } else {
-            ProductStorage storage = realSupplyStorage.get(product.name);
-            storage.actualSupply += value;
-        }
-        //realGdp += value * product.getPrice();
-
-        //add to deductions
-        if (!deductions.containsKey(product.getName())) {
-            deductions.put(product.getName(), new ProductStorage(product));
-        }
-        if (value < 0) {
-            deductions.get(product.getName()).incActualSupply(-value);
-        }
+        workforceRGO += that.workforceRGO;
+        workforceFactory += that.workforceFactory;
+        employmentRGO += that.employmentRGO;
+        employmentFactory += that.employmentFactory;
     }
 
-    public ProductStorage getRealStorage(Product product) {
-        if (!realSupplyStorage.containsKey(product.getName())) {
-            realSupplyStorage.put(product.getName(), new ProductStorage(product));
-        }
-
-        return realSupplyStorage.get(product.getName());
+    private float getIntermediate(Product product) {
+        return intermediate.computeIfAbsent(product, (k) -> 0.f);
     }
 
-    public Map<String, ProductStorage> getRealStorage() {
-        return realSupplyStorage;
+    public void addIntermediate(Product product, float value) {
+        float old = getIntermediate(product);
+        intermediate.put(product, old + value);
+
+        ProductStorage storage = findStorage(product);
+        storage.incGdp(-value);
+    }
+
+    public void addSold(Product product, float value) {
+        findStorage(product).incGdp(value);
     }
 
     public Country(String tag) {
@@ -114,21 +98,21 @@ public class Country extends EconomySubject implements Comparable<Country> {
     }
 
     public void calcGdpPart(Country totalCountry) {
-        GDPPart = actualSupply / totalCountry.actualSupply * 100;
+        GDPPart = gdp / totalCountry.gdp * 100;
     }
 
 
     @Override
     public int compareTo(Country that) {
-        return Float.compare(actualSupply, that.actualSupply);
+        return Float.compare(gdp, that.gdp);
     }
 
     public boolean exist() {
         return population > 0;
     }
 
-    public ProductStorage findStorage(String name) {
-        return storageMap.get(name);
+    public ProductStorage findStorage(Product product) {
+        return storageMap.computeIfAbsent(product.getName(), k -> new ProductStorage(product));
     }
 
     public long getEmployment() {
@@ -163,8 +147,8 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return population;
     }
 
-    public float getUnemploymentRate() {
-        return unemploymentRate;
+    public float getUnemploymentRateRgo() {
+        return (float) ((workforceRGO - employmentRGO) * 4. / population * 100);
     }
 
     public float getUnemploymentRateFactory() {
@@ -203,8 +187,9 @@ public class Country extends EconomySubject implements Comparable<Country> {
         exported = 0;
 
         if (!tag.equals(Report.TOTAL_TAG))
-            realGdp = 0;
-        gdpWithDeductions = 0;
+            gdp = 0;
+
+        actualSupplyWithDeductions = 0;
     }
 
     /**
@@ -214,49 +199,22 @@ public class Country extends EconomySubject implements Comparable<Country> {
         clearCalculated();
         for (ProductStorage productStorage : getStorage().values()) {
 
-            // calculating actual supply
-            float thrownToMarket = (productStorage.totalSupply - productStorage.actualSoldDomestic);
-            if (thrownToMarket <= 0)
-                productStorage.actualSupply = productStorage.totalSupply;
-            else {
-                if (productStorage.product.name.equalsIgnoreCase("precious_metal"))
-                    productStorage.actualSupply = productStorage.totalSupply;
-                else if (productStorage.product.worldmarketPool > 0)
-                    //todo assuming here that for every country, percentage of goods sold on the world market is the same
-                    productStorage.actualSupply = productStorage.actualSoldDomestic + thrownToMarket * productStorage.product.actualSoldWorld / productStorage.product.worldmarketPool;
-                else
-                    productStorage.actualSupply = productStorage.actualSoldDomestic;
-            }
-
-            //calculating import (without wasted)
-            productStorage.imported = Math.max(productStorage.actualDemand - productStorage.actualSupply, 0);
-
-            //calculating exported
-            if (!productStorage.product.name.equalsIgnoreCase("precious_metal")) {
-                productStorage.exported = Math.max(productStorage.actualSupply - productStorage.actualDemand, 0);//???!!!!
-            }
-
+            productStorage.innerCalculations();
+            
             totalSupply += productStorage.getTotalSupplyPounds();
             actualSupply += productStorage.getActualSupplyPounds();
             actualDemand += productStorage.getActualDemandPounds();
             imported += productStorage.getImportedPounds();
             exported += productStorage.getExportedPounds();
+            gdp += productStorage.getGdpPounds();
 
-            gdpWithDeductions += productStorage.getActualSupplyPounds() -
-                    deductions.getOrDefault(productStorage.product.getName(), new ProductStorage(productStorage.product)).getActualSupplyPounds();
+            actualSupplyWithDeductions += (productStorage.getActualSupply() - getIntermediate(productStorage.product))
+                    * productStorage.getPrice();
 
         }
 
-        GDPPerCapita = actualSupply / (float) population * 100000;
+        GDPPerCapita = gdp / (float) population * 100000;
 
-        unemploymentRate = (workforceRGO - employmentRGO) * 4 / (float) population * 100;
-
-        //calc real gdp
-        //todo
-        if (!tag.equals(Report.TOTAL_TAG))
-            for (ProductStorage storage : realSupplyStorage.values()) {
-                realGdp += storage.getActualSupplyPounds();
-            }
     }
 
     @Override
@@ -269,19 +227,7 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return storageMap;
     }
 
-    public void addStorage(ProductStorage product) {
-        storageMap.put(product.product.getName(), product);
-    }
-
-    public float getRealGdp() {
-        return realGdp;
-    }
-
-    public void setRealGdp(float realGdp) {
-        this.realGdp = realGdp;
-    }
-
-    public float getGdpWithDeductions() {
-        return gdpWithDeductions;
+    public float getActualSupplyWithDeductions() {
+        return actualSupplyWithDeductions;
     }
 }

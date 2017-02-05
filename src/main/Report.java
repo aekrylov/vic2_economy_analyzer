@@ -158,7 +158,6 @@ public class Report {
             //todo error handling
             System.out.println("Nash: Some or all the of the localisation files could not be loaded");
         }
-        //}
 
     }
 
@@ -176,9 +175,9 @@ public class Report {
      * Reads the specified save game file fully and constructs full report
      *
      * @param filePath path to save file
-     * @throws IOException if an IO error occurs
+     * @throws RuntimeException if runtime exception occurs
      */
-    public Report(String filePath) {
+    public Report(String filePath) throws RuntimeException {
         Country total = new Country(TOTAL_TAG);
         total.population = 1;
         countries.put(TOTAL_TAG, total);
@@ -226,36 +225,14 @@ public class Report {
             // calculating real totalSupply (without wasted)
             country.innerCalculation();
 
-            totalCountry.population += country.population;
-            totalCountry.goldIncome += country.goldIncome;
-            totalCountry.employmentRGO += country.employmentRGO;
-            totalCountry.employmentFactory += country.employmentFactory;
-            totalCountry.workforceRGO += country.workforceRGO;
-            totalCountry.workforceFactory += country.workforceFactory;
-
-            totalCountry.exported += country.exported;
-            totalCountry.imported += country.imported;
-            totalCountry.actualSupply += country.actualSupply;
-
-            totalCountry.setRealGdp(totalCountry.getRealGdp() + country.getRealGdp());
+            totalCountry.add(country);
 
             for (ProductStorage storage : country.getStorage().values()) {
-                Product product = findProduct(storage.product.name);
-                product.actualBought += storage.actualSupply;
+                storage.product.actualBought += storage.getActualSupply();
 
-                ProductStorage totalStorage = totalCountry.findStorage(storage.product.name);
-                if (totalStorage == null) {
-                    totalStorage = new ProductStorage(storage.product);
-                    totalCountry.addStorage(totalStorage);
-                }
+                ProductStorage totalStorage = totalCountry.findStorage(storage.product);
 
-                totalStorage.actualDemand += storage.actualDemand;
-                totalStorage.actualSoldDomestic += storage.actualSoldDomestic;
-                totalStorage.actualSupply += storage.actualSupply;
-                totalStorage.exported += storage.exported;
-                totalStorage.imported += storage.imported;
-                totalStorage.MaxDemand += storage.MaxDemand;
-                totalStorage.totalSupply += storage.totalSupply;
+                totalStorage.add(storage);
             }
         }
 
@@ -275,7 +252,7 @@ public class Report {
 
     }
 
-    private GenericObject readSaveHead(String savePatch) {
+    private GenericObject readSaveHead(String savePatch) throws RuntimeException {
 
         //------------------------------------
         // global data loading
@@ -341,11 +318,8 @@ public class Report {
             // load savedCountrySupply (ts)
             GenericObject saved_country_supply = countryObject.getChild("saved_country_supply");
             for (ObjectVariable everyGood : saved_country_supply.values) {
-                ProductStorage storage = country.findStorage(everyGood.getName());
-                if (storage == null) {
-                    storage = new ProductStorage(findProduct(everyGood.getName()));
-                    country.addStorage(storage);
-                }
+                Product product = findProduct(everyGood.getName());
+                ProductStorage storage = country.findStorage(product);
 
                 storage.totalSupply = Float.valueOf(everyGood.getValue());
             }
@@ -353,23 +327,17 @@ public class Report {
             // load max demand
             GenericObject foundMaxDemand = countryObject.getChild("domestic_demand_pool");
             for (ObjectVariable everyGood : foundMaxDemand.values) {
-                ProductStorage storage = country.findStorage(everyGood.getName());
-                if (storage == null) {
-                    storage = new ProductStorage(findProduct(everyGood.getName()));
-                    country.addStorage(storage);
-                }
+                Product product = findProduct(everyGood.getName());
+                ProductStorage storage = country.findStorage(product);
 
-                storage.MaxDemand = Float.valueOf(everyGood.getValue());
+                storage.maxDemand = Float.valueOf(everyGood.getValue());
             }
 
             // load internal consumption
             GenericObject foundSold = countryObject.getChild("actual_sold_domestic");
             for (ObjectVariable everyGood : foundSold.values) {
-                ProductStorage storage = country.findStorage(everyGood.getName());
-                if (storage == null) {
-                    storage = new ProductStorage(findProduct(everyGood.getName()));
-                    country.addStorage(storage);
-                }
+                Product product = findProduct(everyGood.getName());
+                ProductStorage storage = country.findStorage(product);
 
                 storage.actualSoldDomestic = Float.valueOf(everyGood.getValue());
                 storage.actualDemand = storage.actualSoldDomestic;
@@ -388,16 +356,17 @@ public class Report {
                         float supply = Float.parseFloat(building.getString("produces"));
                         float sold = Float.parseFloat(building.getString("last_income")) / 1000 / output.getPrice();
 
-                        ProductStorage storage = country.getRealStorage(output);
-                        storage.incTotalSupply(supply);
-                        storage.incActualSupply(sold);
+                        ProductStorage storage = country.findStorage(output);
+                        //todo totalSupply
+                        //storage.incTotalSupply(supply);
+                        storage.incGdp(sold);
                         //todo check leftover
 
                         GenericObject stockpile = building.getChild("stockpile");
 
                         //assuming that factory stockpile is close to its consumption the previous day
                         for (ObjectVariable good : stockpile.values) {
-                            country.incRealSupply(findProduct(good.getName()), -Float.parseFloat(good.getValue()));
+                            country.addIntermediate(findProduct(good.getName()), Float.parseFloat(good.getValue()));
                         }
 
                         country.employmentFactory += getEmployeeCount(building);
@@ -453,22 +422,20 @@ public class Report {
                         String productName = getProductNameArtisans(object.getString("production_type"));
                         Product output = findProduct(productName);
 
-                        //todo incorrect
+                        //todo incorrect total supply
                         //float supply = Float.parseFloat(object.getString("current_producing"));
                         //float soldDomestic = supply * Float.parseFloat(object.getString("percent_sold_domestic"));
                         //float soldExport = supply * Float.parseFloat(object.getString("percent_sold_export"));
 
                         float sold = Float.parseFloat(object.getString("production_income")) / 1000 / output.getPrice();
 
-                        ProductStorage storage = owner.getRealStorage(output);
-                        //storage.incTotalSupply(supply);
-                        storage.incActualSupply(sold);
+                        owner.addSold(output, sold);
                         //todo throttle, leftover?
 
                         GenericObject stockpile = object.getChild("stockpile");
                         if (stockpile != null) {
                             for (ObjectVariable good : stockpile.values) {
-                                owner.incRealSupply(findProduct(good.getName()), -Float.parseFloat(good.getValue()));
+                                owner.addIntermediate(findProduct(good.getName()), Float.parseFloat(good.getValue()));
                             }
                         }
                     }
@@ -478,7 +445,7 @@ public class Report {
                         Product output = findProduct(object.getString("goods_type"));
                         double lastIncome = object.getDouble("last_income") / 1000;
                         double sold = lastIncome / output.getPrice();
-                        owner.incRealSupply(output, (float) sold);
+                        owner.addSold(output, (float) sold);
 
                         // gold income calculation
                         if (output.getName().equalsIgnoreCase("precious_metal"))
