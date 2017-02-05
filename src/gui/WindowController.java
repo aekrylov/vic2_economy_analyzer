@@ -1,8 +1,6 @@
 package gui;
 
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -12,14 +10,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
-import javafx.util.Callback;
+import javafx.util.StringConverter;
 import main.*;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Comparator;
 import java.util.ResourceBundle;
-import java.util.function.Function;
 
 /**
  * @author nashet
@@ -63,17 +59,23 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     public TableColumn<Country, String> colCountry;
     @FXML
-    public TableColumn<Country, String> colPopulation;
+    public TableColumn<Country, Long> colPopulation;
     @FXML
     TableColumn<Country, Float> colConsumption;
     @FXML
-    TableColumn<Country, String> colGDP;
+    TableColumn<Country, Float> colGDP;
     @FXML
-    TableColumn<Country, String> colGDPPer;
+    TableColumn<Country, Float> colRealGDP;
+    /*
+        @FXML
+        TableColumn<Country, Float> colGdpWithDeductions;
+    */
+    @FXML
+    TableColumn<Country, Float> colGDPPer;
     @FXML
     TableColumn<Country, Integer> colGDPPlace;
     @FXML
-    TableColumn<Country, String> colGDPPart;
+    TableColumn<Country, Float> colGDPPart;
     @FXML
     TableColumn<Country, Long> colGoldIncome;
     @FXML
@@ -85,9 +87,9 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     TableColumn<Country, Float> colImport;
     @FXML
-    TableColumn<Country, String> colUnemploymentRate;
+    TableColumn<Country, Float> colUnemploymentRate;
     @FXML
-    TableColumn<Country, String> colUnemploymentRateFactory;
+    TableColumn<Country, Float> colUnemploymentRateFactory;
 
     private void fillMainTable() {
         countryTableContent.clear();
@@ -111,27 +113,37 @@ public class WindowController extends BaseController implements Initializable {
 
 
         setFactory(colCountry, Country::getOfficialName);
-        colPopulation.setCellValueFactory(new KmgCellValueFactory<>(Country::getPopulation));
-        colGDP.setCellValueFactory(new KmgCellValueFactory<>(Country::getActualSupply));
+        setFactory(colPopulation, Country::getPopulation);
+        setFactory(colGDP, Country::getActualSupply);
+        setFactory(colRealGDP, Country::getRealGdp);
+        //setFactory(colGdpWithDeductions, Country::getGdpWithDeductions);
         setFactory(colConsumption, Country::getActualDemand);
-        colConsumption.setVisible(false);
-        colGDPPer.setCellValueFactory(new KmgCellValueFactory<>(Country::getGdpPerCapita));
+        setFactory(colGDPPer, Country::getGdpPerCapita);
         setFactory(colGDPPlace, Country::getGDPPlace);
-        colGDPPart.setCellValueFactory(new PercentageCellValueFactory<>(Country::getGDPPart));
+        setFactory(colGDPPart, Country::getGDPPart);
         setFactory(colGoldIncome, Country::getGoldIncome);
 
         setFactory(colWorkforce, Country::getWorkforce);
-        colWorkforce.setVisible(false);
         setFactory(colEmployment, Country::getEmployment);
-        colEmployment.setVisible(false);
 
         setFactory(colExport, Country::getExported);
-        colExport.setVisible(false);
         setFactory(colImport, Country::getImported);
-        colImport.setVisible(false);
 
-        colUnemploymentRate.setCellValueFactory(new PercentageCellValueFactory<>(Country::getUnemploymentRate));
-        colUnemploymentRateFactory.setCellValueFactory(new PercentageCellValueFactory<>(Country::getUnemploymentRateFactory));
+        setFactory(colUnemploymentRate, Country::getUnemploymentRate);
+        setFactory(colUnemploymentRateFactory, Country::getUnemploymentRateFactory);
+
+        setCellFactory(colPopulation, new KmgConverter<>());
+        setCellFactory(colGDP, new KmgConverter<>());
+        setCellFactory(colRealGDP, new KmgConverter<>());
+        setCellFactory(colGDPPart, new PercentageConverter());
+        setCellFactory(colUnemploymentRate, new PercentageConverter());
+        setCellFactory(colUnemploymentRateFactory, new PercentageConverter());
+
+        colConsumption.setVisible(false);
+        colWorkforce.setVisible(false);
+        colEmployment.setVisible(false);
+        colExport.setVisible(false);
+        colImport.setVisible(false);
 
         PathKeeper.checkPaths();
         tfLocalization.setText(PathKeeper.LOCALISATION_PATH);
@@ -144,36 +156,6 @@ public class WindowController extends BaseController implements Initializable {
             }
 
         });
-
-        class FloatComparator implements Comparator<String> {
-
-            @Override
-            public int compare(String arg0, String arg1) {
-                float first = Wrapper.fromPercentage(arg0);
-                float second = Wrapper.fromPercentage(arg1);
-
-                return Float.compare(first, second);
-
-            }
-        }
-
-        class KmgComparator implements Comparator<String> {
-
-            @Override
-            public int compare(String o1, String o2) {
-                float f1 = Wrapper.fromKMG(o1);
-                float f2 = Wrapper.fromKMG(o2);
-                return Float.compare(f1, f2);
-            }
-        }
-
-        colUnemploymentRateFactory.setComparator(new FloatComparator());
-        colGDPPer.setComparator(new FloatComparator());
-        colGDPPart.setComparator(new FloatComparator());
-        colGDP.setComparator(new KmgComparator());
-
-        colPopulation.setComparator(new KmgComparator());
-        colUnemploymentRate.setComparator(new FloatComparator());
 
         self = this;
     }
@@ -318,34 +300,30 @@ public class WindowController extends BaseController implements Initializable {
     }
 }
 
-/**
- * By Anton Krylov (anthony.kryloff@gmail.com)
- * Date: 2/2/17 5:12 PM
- */
-class KmgCellValueFactory<S> implements Callback<TableColumn.CellDataFeatures<S, String>, ObservableValue<String>> {
-
-    private final Function<S, ? extends Number> getter;
-
-    KmgCellValueFactory(Function<S, ? extends Number> getter) {
-        this.getter = getter;
-    }
+class KmgConverter<T extends Number> extends StringConverter<T> {
 
     @Override
-    public ObservableValue<String> call(TableColumn.CellDataFeatures<S, String> param) {
-        return new ReadOnlyStringWrapper(Wrapper.toKMG(getter.apply(param.getValue())));
+    public String toString(T object) {
+        return Wrapper.toKMG(object);
+    }
+
+    //don't need this
+    @Override
+    public T fromString(String string) {
+        return null;
     }
 }
 
-class PercentageCellValueFactory<S> implements Callback<TableColumn.CellDataFeatures<S, String>, ObservableValue<String>> {
-
-    private final Function<S, Float> getter;
-
-    public PercentageCellValueFactory(Function<S, Float> getter) {
-        this.getter = getter;
-    }
+class PercentageConverter extends StringConverter<Float> {
 
     @Override
-    public ObservableValue<String> call(TableColumn.CellDataFeatures<S, String> param) {
-        return new ReadOnlyStringWrapper(Wrapper.toPercentage(getter.apply(param.getValue())));
+    public String toString(Float object) {
+        return Wrapper.toPercentage(object);
+    }
+
+    //don't need this
+    @Override
+    public Float fromString(String string) {
+        return null;
     }
 }

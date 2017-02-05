@@ -36,6 +36,10 @@ public final class ObjectVariable
         value = newValue;
         inQuotes = quotes;
     }
+
+    public String getName() {
+        return varname;
+    }
     
     public String getValue() {
         return value;

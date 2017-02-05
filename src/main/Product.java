@@ -20,7 +20,7 @@ public class Product {
     /**
      * global, in pieces
      */
-    public float affordable;
+    public float demand;
     /**
      * global, in pieces
      */
@@ -32,8 +32,7 @@ public class Product {
     /**
      * global
      */
-    //todo
-    public float trend;
+    private float trend;
     /**
      * global
      */
@@ -49,7 +48,6 @@ public class Product {
     String name = "";
 
     public Product(String iname, float iprice) {
-        super();
         this.name = iname;
         this.price = iprice;
     }
@@ -62,34 +60,28 @@ public class Product {
         return price;
     }
 
-    public long getConsumption() {
-        long result;
-        if (supply >= consumption && consumption <= affordable)
-            if (supply <= affordable)
-                result = (long) supply;
-            else
-                result = (long) affordable;
+    public float getConsumption() {
+        if (supply >= consumption && consumption <= demand)
+            return Math.min(supply, demand);
         else
-            result = (long) consumption;
-        return result;
-        //return (long)consumption;
+            return consumption;
 
     }
 
-    public long getRealSupply() {
-        return (long) supply;
+    public float getSupply() {
+        return supply;
     }
 
-    public long getAffordable() {
-        return (long) affordable;
+    public float getDemand() {
+        return demand;
     }
 
-    public long getMaxDemand() {
-        return (long) maxDemand;
+    public float getMaxDemand() {
+        return maxDemand;
     }
 
-    public long getActualBought() {
-        return (long) actualBought;
+    public float getActualBought() {
+        return actualBought;
     }
 
     public float getBasePrice() {
@@ -117,7 +109,56 @@ public class Product {
     }
 
     public float getOverproduced() {
-        return supply / affordable * 100;
+        return supply / demand * 100;
     }
 
+    public void setPrice(float price) {
+        this.price = price;
+    }
+
+    public void setConsumption(float consumption) {
+        this.consumption = consumption;
+    }
+
+    public void setSupply(float supply) {
+        this.supply = supply;
+    }
+
+    public void setDemand(float demand) {
+        this.demand = demand;
+    }
+
+    public void setMaxDemand(float maxDemand) {
+        this.maxDemand = maxDemand;
+    }
+
+    public void setBasePrice(float basePrice) {
+        this.basePrice = basePrice;
+    }
+
+    public void setTrend(float trend) {
+        this.trend = trend;
+    }
+
+    public void setActualBought(float actualBought) {
+        this.actualBought = actualBought;
+    }
+
+    public void setWorldmarketPool(float worldmarketPool) {
+        this.worldmarketPool = worldmarketPool;
+    }
+
+    public void setActualSoldWorld(float actualSoldWorld) {
+        this.actualSoldWorld = actualSoldWorld;
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Product && name.equals(((Product) obj).name);
+    }
 }
