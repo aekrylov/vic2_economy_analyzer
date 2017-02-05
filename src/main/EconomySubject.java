@@ -23,6 +23,33 @@ public abstract class EconomySubject {
      */
     float totalSupply;
 
+    /**
+     * (Actual supply) - (producers stockpile) for storages
+     * total production - total producers stockpile for countries
+     */
+    protected float gdp;
+
+    /**
+     * Adds values of another subject
+     * Note that different subclasses may use different units
+     *
+     * @param that another subject
+     * @throws RuntimeException if runtime classes are not equal
+     */
+    public void add(EconomySubject that) throws RuntimeException {
+        if (!getClass().equals(that.getClass())) {
+            throw new RuntimeException("Incompatible classes");
+        }
+        totalSupply += that.totalSupply;
+        actualSupply += that.actualSupply;
+        actualDemand += that.actualDemand;
+
+        exported += that.exported;
+        imported += that.imported;
+
+        gdp += that.gdp;
+    }
+
     public float getActualSupply() {
         return actualSupply;
     }
@@ -55,5 +82,14 @@ public abstract class EconomySubject {
         exported += value;
     }
 
+    public float getGdp() {
+        return gdp;
+    }
 
+    public void setGdp(float gdp) {
+        this.gdp = gdp;
+    }
+
+    public void incGdp(float value) {
+        gdp += value; }
 }

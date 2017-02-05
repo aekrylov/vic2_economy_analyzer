@@ -28,9 +28,7 @@ public class CountryController extends ChartsController {
 
         Function<PieChart.Data, String> onEnter = data -> {
             ProductStorage productStorage = storageMap.get(data.getName());
-            if (productStorage != null) {
-                return String.format("%s: %.1f£ (%.1f items)", data.getName(), data.getPieValue(), getter.apply(productStorage));
-            } else return "findStorage(data.getName()) returned NULL";
+            return String.format("%s: %.1f£ (%.1f items)", data.getName(), data.getPieValue(), getter.apply(productStorage));
         };
 
         String title = String.format("%s of %s (%.1f£)", name, country.getOfficialName(), getter.apply(country));
@@ -42,12 +40,13 @@ public class CountryController extends ChartsController {
         this.country = country;
         this.storageMap = country.getStorage();
 
-        addUniChart(EconomySubject::getActualSupply, 0, 0, "Production");
+        addUniChart(EconomySubject::getGdp, 0, 0, "GDP");
         addUniChart(EconomySubject::getActualDemand, 0, 2, "Consumption");
         addUniChart(EconomySubject::getExported, 1, 0, "Export");
         addUniChart(EconomySubject::getImported, 1, 2, "Import");
-        //addUniChart(report, country, "MaxDemand",2,0, "MaxDemand");
+        //addUniChart(report, country, "maxDemand",2,0, "maxDemand");
         addUniChart(EconomySubject::getTotalSupply, 0, 4, "Total Supply");
+        addUniChart(EconomySubject::getActualSupply, 1, 4, "Actual supply");
     }
 }
 

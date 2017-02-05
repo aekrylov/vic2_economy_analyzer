@@ -9,14 +9,15 @@
     <TableView id="table" fx:id="mainTable" editable="true" prefHeight="520.0"
                prefWidth="1173.0" tableMenuButtonVisible="true">
       <columns>
+          <TableColumn fx:id="colImage" prefWidth="30" text="Flag"/>
         <TableColumn fx:id="colCountry" prefWidth="235.99996948242188" text="Country"/>
         <TableColumn id="colPopulation" fx:id="colPopulation" prefWidth="122.0" text="Population"/>
         <TableColumn fx:id="colConsumption" prefWidth="85.0" text="Consumption"/>
         <TableColumn fx:id="colExport" prefWidth="85.0" text="Export"/>
         <TableColumn fx:id="colImport" prefWidth="84.0" text="Import"/>
-        <TableColumn fx:id="colGDP" prefWidth="95.0" text="GDP"/>
-        <TableColumn fx:id="colRealGDP" prefWidth="95.0" text="Real GDP"/>
-        <!--<TableColumn prefWidth="95.0" text="GDP with d" fx:id="colGdpWithDeductions"/>-->
+          <TableColumn fx:id="colActualSupply" prefWidth="95.0" text="Actual supply"/>
+          <TableColumn fx:id="colGdp" prefWidth="95.0" text="GDP"/>
+          <TableColumn prefWidth="95.0" text="AS with deductions" fx:id="colActualSupplyWithDeductions"/>
         <TableColumn fx:id="colGDPPer" prefWidth="100.0" text="GDP per capita"/>
         <TableColumn fx:id="colGDPPlace" prefWidth="58.0" text="GDP #"/>
         <TableColumn fx:id="colGDPPart" prefWidth="85.0" text="GDP %"/>
