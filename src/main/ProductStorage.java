@@ -64,6 +64,9 @@ public class ProductStorage extends EconomySubject {
                 actualSupply = actualSoldDomestic;
         }
 
+        //todo
+        gdp += actualSupply;
+
         //calculating import (without wasted)
         imported = Math.max(actualDemand - actualSupply, 0);
 

@@ -92,6 +92,9 @@ public class Report {
 
     private Map<String, Country> countries = new HashMap<>();
 
+    private Set<String> unknownFactoryTypes = new TreeSet<>();
+    private Set<String> unknownArtisanTypes = new TreeSet<>();
+
     /**
      * Reads the given file and for any given line checks if the tag is equal to the
      * one in countrylist.
@@ -161,8 +164,7 @@ public class Report {
             }
 
         } catch (NullPointerException | IOException e) {
-            //todo error handling
-            System.err.println("Nash: Some or all the of the localisation files could not be loaded");
+            System.err.println("Nash: Some or all the of the csv files could not be loaded");
         }
 
     }
@@ -207,6 +209,11 @@ public class Report {
         PathKeeper.save();
         System.out.println("Nash: processing data...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         countTotals();
+
+        System.out.println("Unknown factory types:");
+        unknownFactoryTypes.forEach(System.out::println);
+        System.out.println("Unknown artisan types:");
+        unknownArtisanTypes.forEach(System.out::println);
     }
 
     /**
@@ -357,21 +364,11 @@ public class Report {
                     //if it has employment, it is a factory
                     GenericObject employment = building.getChild("employment");
                     if (employment != null) {
+                        //todo this is for testing purposes only
                         Product output = findProductPrefix(getProductNameFactory(building.getString("building")));
-                        if (output == Product.getUnknownProduct()) {
-                            //todo handle properly
-                            System.err.println("Unknown factory type: " + building.getString("building"));
+                        if (output == null || output == Product.getUnknownProduct()) {
+                            unknownFactoryTypes.add(building.getString("building"));
                         }
-
-                        //count factory output
-                        float supply = Float.parseFloat(building.getString("produces"));
-                        float sold = Float.parseFloat(building.getString("last_income")) / 1000 / output.getPrice();
-
-                        ProductStorage storage = country.findStorage(output);
-                        //todo totalSupply
-                        //storage.incTotalSupply(supply);
-                        storage.incGdp(sold);
-                        //todo check leftover
 
                         GenericObject stockpile = building.getChild("stockpile");
 
@@ -431,20 +428,12 @@ public class Report {
                         owner.workforceFactory += popSize;
                     } else if (object.name.equalsIgnoreCase("artisans") && object.containsValue("production_type")) {
                         String productName = getProductNameArtisans(object.getString("production_type"));
+
+                        //todo this is for testing purposes only
                         Product output = findProduct(productName);
-                        if (output.equals(Product.getUnknownProduct())) {
-                            System.err.println("Unknown production_type: " + object.getString("production_type"));
+                        if (output == null || output.equals(Product.getUnknownProduct())) {
+                            unknownArtisanTypes.add(object.getString("production_type"));
                         }
-
-                        //todo incorrect total supply
-                        //float supply = Float.parseFloat(object.getString("current_producing"));
-                        //float soldDomestic = supply * Float.parseFloat(object.getString("percent_sold_domestic"));
-                        //float soldExport = supply * Float.parseFloat(object.getString("percent_sold_export"));
-
-                        float sold = Float.parseFloat(object.getString("production_income")) / 1000 / output.getPrice();
-
-                        owner.addSold(output, sold);
-                        //todo throttle, leftover?
 
                         GenericObject stockpile = object.getChild("stockpile");
                         if (stockpile != null) {
@@ -458,8 +447,10 @@ public class Report {
                         //exact rgo output is not shown, we can guess based on last_income
                         Product output = findProduct(object.getString("goods_type"));
                         double lastIncome = object.getDouble("last_income") / 1000;
+/*
                         double sold = lastIncome / output.getPrice();
                         owner.addSold(output, (float) sold);
+*/
 
                         // gold income calculation
                         if (output.getName().equalsIgnoreCase("precious_metal"))
