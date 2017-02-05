@@ -85,6 +85,11 @@ public class Report {
     }
 
     private Map<String, Product> productMap = new HashMap<>();
+
+    {
+        productMap.put("unknown", Product.getUnknownProduct());
+    }
+
     private Map<String, Country> countries = new HashMap<>();
 
     /**
@@ -128,8 +133,9 @@ public class Report {
      * @return corresponding Product instance, or null if none found
      */
     private Product findProductPrefix(String str) {
-        if (str.isEmpty())
-            return null;
+        if (str.isEmpty()) {
+            return productMap.get("unknown");
+        }
 
         Product product = findProduct(str);
         if (product == null)
@@ -156,7 +162,7 @@ public class Report {
 
         } catch (NullPointerException | IOException e) {
             //todo error handling
-            System.out.println("Nash: Some or all the of the localisation files could not be loaded");
+            System.err.println("Nash: Some or all the of the localisation files could not be loaded");
         }
 
     }
@@ -296,10 +302,10 @@ public class Report {
      */
     private Vic2SaveGameNash readSaveBody(String savePatch, GenericObject eugSave) {
 
+        System.out.println("Properties.VERSION = " + Properties.VERSION);
 
         System.out.println("Nash: openning Vic2SaveGame...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         Vic2SaveGameNash save = new Vic2SaveGameNash(eugSave, savePatch, "", "");
-
 
         System.out.println("Nash: preload Provinces...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         save.preloadProvinces();
@@ -352,6 +358,11 @@ public class Report {
                     GenericObject employment = building.getChild("employment");
                     if (employment != null) {
                         Product output = findProductPrefix(getProductNameFactory(building.getString("building")));
+                        if (output == Product.getUnknownProduct()) {
+                            //todo handle properly
+                            System.err.println("Unknown factory type: " + building.getString("building"));
+                        }
+
                         //count factory output
                         float supply = Float.parseFloat(building.getString("produces"));
                         float sold = Float.parseFloat(building.getString("last_income")) / 1000 / output.getPrice();
@@ -421,6 +432,9 @@ public class Report {
                     } else if (object.name.equalsIgnoreCase("artisans") && object.containsValue("production_type")) {
                         String productName = getProductNameArtisans(object.getString("production_type"));
                         Product output = findProduct(productName);
+                        if (output.equals(Product.getUnknownProduct())) {
+                            System.err.println("Unknown production_type: " + object.getString("production_type"));
+                        }
 
                         //todo incorrect total supply
                         //float supply = Float.parseFloat(object.getString("current_producing"));
@@ -471,8 +485,6 @@ public class Report {
         boolean result = false;
         String goodsPath = path + "/common/goods.txt";
 
-        System.out.println("Nash: attempt to read " + goodsPath);
-
         if (path != null && !path.isEmpty() && Files.exists(Paths.get(goodsPath))) {
 
             GenericObject root = EUGFileIO.load(goodsPath);
@@ -500,6 +512,16 @@ public class Report {
 
     }
 
+    private Product findProductFromTypeArtisans(String productionType) {
+        Product tmp = findProductPrefix(getProductNameArtisans(productionType));
+        return tmp != null ? tmp : Product.getUnknownProduct();
+    }
+
+    private Product findProductFromTypeFactory(String buildingType) {
+        Product tmp = findProductPrefix(getProductNameFactory(buildingType));
+        return tmp != null ? tmp : Product.getUnknownProduct();
+    }
+
     private static String getProductNameArtisans(String productionType) {
         String name = productionType.replace("artisan_", "").replace("winery", "wine");
         if (convoys.contains(name)) {
@@ -511,7 +533,7 @@ public class Report {
 
     private static String getProductNameFactory(String buildingType) {
         //Most of HoD factory names handled here
-        return getProductNameArtisans(buildingType.replaceAll("_([a-z]+[oe]ry|mill|[a-z]+yard)$", ""));
+        return getProductNameArtisans(buildingType.replaceAll("_(factory|distillery|mill|[a-z]+yard)$", ""));
     }
 
     /**

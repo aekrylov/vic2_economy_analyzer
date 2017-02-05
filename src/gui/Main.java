@@ -1,7 +1,5 @@
 package gui;
 
-import java.io.IOException;
-
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,6 +9,10 @@ import javafx.stage.Stage;
 import main.Country;
 import main.Product;
 import main.Report;
+
+import java.io.IOException;
+
+import static main.Properties.VERSION;
 
 public class Main extends Application {
 
@@ -26,7 +28,7 @@ public class Main extends Application {
         Parent root = windowLoader.load();
         WindowController windowController = windowLoader.getController();
 
-        stage.setTitle("Victoria II SGEA: main window");
+        stage.setTitle("Victoria II SGEA v" + VERSION);
         stage.setScene(new Scene(root));
         //stage.setMinWidth(700);
         //stage.setMinHeight(500);

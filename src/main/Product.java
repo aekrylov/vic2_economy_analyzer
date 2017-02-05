@@ -5,6 +5,12 @@ package main;
  *         This is static-alike class for report
  */
 public class Product {
+    private static final Product UNKNOWN_PRODUCT = new Product("unknown", 0);
+
+    public static Product getUnknownProduct() {
+        return UNKNOWN_PRODUCT;
+    }
+
     /**
      * global
      */
