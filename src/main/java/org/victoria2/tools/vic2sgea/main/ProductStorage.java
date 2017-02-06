@@ -81,4 +81,11 @@ public class ProductStorage extends EconomySubject {
 
     }
 
+    public void setActualSoldDomestic(float actualSoldDomestic) {
+        this.actualSoldDomestic = actualSoldDomestic;
+    }
+
+    public void setMaxDemand(float maxDemand) {
+        this.maxDemand = maxDemand;
+    }
 }

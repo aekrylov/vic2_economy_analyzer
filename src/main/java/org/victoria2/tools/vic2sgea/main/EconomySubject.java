@@ -70,6 +70,26 @@ public abstract class EconomySubject {
         return imported;
     }
 
+    public void setExported(float exported) {
+        this.exported = exported;
+    }
+
+    public void setImported(float imported) {
+        this.imported = imported;
+    }
+
+    public void setActualSupply(float actualSupply) {
+        this.actualSupply = actualSupply;
+    }
+
+    public void setActualDemand(float actualDemand) {
+        this.actualDemand = actualDemand;
+    }
+
+    public void setTotalSupply(float totalSupply) {
+        this.totalSupply = totalSupply;
+    }
+
     public void incActualSupply(float value) {
         actualSupply += value;
     }

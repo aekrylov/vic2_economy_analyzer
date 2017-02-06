@@ -1,5 +1,7 @@
 package org.victoria2.tools.vic2sgea.main;
 
+import javafx.scene.paint.Color;
+
 import java.util.Locale;
 
 /**
@@ -42,7 +44,6 @@ public class Wrapper {
                 break;
         }
         return Float.valueOf(in.replaceAll("[^0-9.]", "")) * multiplier;
-
     }
 
     public static String toPercentage(float in) {
@@ -54,5 +55,13 @@ public class Wrapper {
 
         //replace any irrelevant characters
         return Float.valueOf(in.replaceAll("[^0-9.]", ""));
+    }
+
+    public static String toWebColor(Color color) {
+
+        return String.format("#%02X%02X%02X",
+                (int) (color.getRed() * 255),
+                (int) (color.getGreen() * 255),
+                (int) (color.getBlue() * 255));
     }
 }

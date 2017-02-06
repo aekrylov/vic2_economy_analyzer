@@ -1,5 +1,7 @@
 package org.victoria2.tools.vic2sgea.main;
 
+import javafx.scene.paint.Color;
+
 /**
  * @author nash
  *         This is static-alike class for report
@@ -52,6 +54,8 @@ public class Product {
      */
     public float actualSoldWorld;
     String name = "";
+
+    private Color color;
 
     public Product(String iname, float iprice) {
         this.name = iname;
@@ -166,5 +170,13 @@ public class Product {
     @Override
     public boolean equals(Object obj) {
         return obj instanceof Product && name.equals(((Product) obj).name);
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
     }
 }

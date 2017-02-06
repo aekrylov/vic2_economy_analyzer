@@ -9,12 +9,15 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import org.victoria2.tools.vic2sgea.main.Report;
+import org.victoria2.tools.vic2sgea.main.Wrapper;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * By Anton Krylov (anthony.kryloff@gmail.com)
@@ -26,6 +29,8 @@ public class ChartsController extends BaseController {
     protected final Scene scene;
     protected final GridPane grid;
     protected final Report report;
+
+    private int chartCount = 0;
 
     public ChartsController(Report report) {
         this.report = report;
@@ -69,8 +74,11 @@ public class ChartsController extends BaseController {
         final Label caption = new Label("");
         caption.getStyleClass().add("chart-caption");
 
-        grid.add(chart, i, j);
-        grid.add(caption, i, j + 1);
+        GridPane subPane = new GridPane();
+        subPane.add(chart, 0, 0);
+        subPane.add(caption, 0, 1);
+
+        grid.add(subPane, i, j);
 
         Double totalValue = chart.getData().stream()
                 .map(PieChart.Data::getPieValue)
@@ -90,7 +98,56 @@ public class ChartsController extends BaseController {
         return chart;
     }
 
+    /*protected PieChart addChart(List<PieChart.Data> pieChartData, String title,
+                                Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
+        int row = (chartCount / 2);
+        int column = chartCount % 2;
+
+        chartCount++;
+        return addChart(pieChartData, column, row, title, onEnter, onClick);
+
+    }*/
+
+    protected PieChart addChart(List<ChartSlice> slices, String title,
+                                Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
+        int row = (chartCount / 2);
+        int column = chartCount % 2;
+
+        chartCount++;
+
+        List<PieChart.Data> pieChartData = slices.stream()
+                .map(chartSlice -> chartSlice.data)
+                .collect(Collectors.toList());
+
+        PieChart chart = addChart(pieChartData, column, row, title, onEnter, onClick);
+        slices.forEach(ChartSlice::setColor);
+
+        return chart;
+
+    }
+
     public Scene getScene() {
         return scene;
+    }
+
+    static class ChartSlice {
+        private Color color;
+        private PieChart.Data data;
+
+        public ChartSlice(String name, double value, Color color) {
+            this(name, value);
+            this.color = color;
+        }
+
+        public ChartSlice(String name, double value) {
+            data = new PieChart.Data(name, value);
+        }
+
+        void setColor() {
+            if (color == null)
+                return;
+            String webColor = Wrapper.toWebColor(color);
+            data.getNode().setStyle("-fx-pie-color: " + webColor);
+        }
     }
 }

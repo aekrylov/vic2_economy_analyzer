@@ -1,11 +1,14 @@
 package org.victoria2.tools.vic2sgea.main;
 
 import eug.parser.EUGFileIO;
+import eug.shared.GenericList;
 import eug.shared.GenericObject;
 import eug.shared.ObjectVariable;
+import javafx.scene.paint.Color;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -58,13 +61,11 @@ public class Report {
     }
 
     /**
-     * Returns list localisation/*.csv file for gicen path
+     * Returns list localisation/*.csv file for given path
      * Half finished, will probably not be completed.
      */
     private static List<File> getLocalisations(String path) throws NullPointerException {
 
-        // Directory path here
-        //	  String path = "."; 
         /*String [] unwanted = {"darkness.csv", "1.1.csv", "1.3.csv", "1.4.csv", "beta1.csv", "beta3.csv", "darkness_3_02.csv",
                 "darkness_3_03.csv",
 				"event_news.csv",
@@ -91,9 +92,6 @@ public class Report {
     }
 
     private Map<String, Country> countries = new HashMap<>();
-
-    private Set<String> unknownFactoryTypes = new TreeSet<>();
-    private Set<String> unknownArtisanTypes = new TreeSet<>();
 
     /**
      * Reads the given file and for any given line checks if the tag is equal to the
@@ -129,24 +127,8 @@ public class Report {
         return null;
     }
 
-    /**
-     * Returns product which name is a prefix of the given string.
-     * Performs {@code name.length} hash map searches in worst case
-     * Convoys are handled here
-     *
-     * @param str String to search for
-     * @return corresponding Product instance, or null if none found
-     */
-    private Product findProductPrefix(String str) {
-        if (str.isEmpty()) {
-            return productMap.get("unknown");
-        }
-
-        Product product = findProduct(str);
-        if (product == null)
-            product = findProductPrefix(str.substring(0, str.length() - 1));
-
-        return product;
+    private Product findProductOrCreate(String name) {
+        return productMap.computeIfAbsent(name, k -> new Product(k, -1));
     }
 
     /**
@@ -192,6 +174,13 @@ public class Report {
         total.population = 1;
         countries.put(TOTAL_TAG, total);
 
+
+        System.out.println("Loading products");
+        //load all existing products
+        if (!readProductInfo(modPath))
+            readProductInfo(localisationPath);
+
+
         System.out.println("Nash: reading EUG head... free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         GenericObject head = readSaveHead(filePath);
 
@@ -200,22 +189,12 @@ public class Report {
         System.out.println("Nash: processing POPs... free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         countPops(save);
 
-        if (!readProductInfo(modPath))
-            readProductInfo(localisationPath);
-
         System.out.println("Nash: reading localizations...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         readLocalisations(localisationPath);
-
-        //Runtime.getRuntime().gc();
 
         PathKeeper.save();
         System.out.println("Nash: processing data...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         countTotals();
-
-        System.out.println("Unknown factory types:");
-        unknownFactoryTypes.forEach(System.out::println);
-        System.out.println("Unknown artisan types:");
-        unknownArtisanTypes.forEach(System.out::println);
     }
 
     /**
@@ -267,23 +246,17 @@ public class Report {
 
     }
 
-    private GenericObject readSaveHead(String savePatch) throws RuntimeException {
+    private GenericObject readSaveHead(String savePath) throws RuntimeException {
 
         //------------------------------------
         // global data loading
         //------------------------------------
-        GenericObject eugSave = EUGFileIO.load(savePatch);
+        GenericObject eugSave = EUGFileIO.load(savePath);
         GenericObject worldmarket = eugSave.getChild("worldmarket");
-
-        // price loading
-        List<ObjectVariable> price_pool = worldmarket.getChild("price_pool").values;
-        for (ObjectVariable iter : price_pool) {
-            Product product = new Product(iter.getName(), Float.valueOf(iter.getValue()));
-            productMap.put(product.getName(), product);
-        }
 
         //load global product data
         Map<String, BiConsumer<Product, Float>> fieldMap = new HashMap<>();
+        fieldMap.put("price_pool", Product::setPrice);
         fieldMap.put("price_change", Product::setTrend);
         fieldMap.put("demand", Product::setMaxDemand);
         fieldMap.put("real_demand", Product::setDemand);
@@ -309,12 +282,12 @@ public class Report {
     /**
      * Should contain EUG file reading only
      */
-    private Vic2SaveGameNash readSaveBody(String savePatch, GenericObject eugSave) {
+    private Vic2SaveGameNash readSaveBody(String savePath, GenericObject eugSave) {
 
         System.out.println("Properties.VERSION = " + Properties.VERSION);
 
         System.out.println("Nash: openning Vic2SaveGame...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        Vic2SaveGameNash save = new Vic2SaveGameNash(eugSave, savePatch, "", "");
+        Vic2SaveGameNash save = new Vic2SaveGameNash(eugSave, savePath, "", "");
 
         System.out.println("Nash: preload Provinces...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         save.preloadProvinces();
@@ -330,32 +303,23 @@ public class Report {
         for (GenericObject countryObject : save.getCountries()) {
             Country country = new Country(countryObject.name);
 
-            // load savedCountrySupply (ts)
-            GenericObject saved_country_supply = countryObject.getChild("saved_country_supply");
-            for (ObjectVariable everyGood : saved_country_supply.values) {
-                Product product = findProduct(everyGood.getName());
-                ProductStorage storage = country.findStorage(product);
+            Map<String, BiConsumer<ProductStorage, Float>> fieldsMap = new HashMap<>();
+            fieldsMap.put("saved_country_supply", ProductStorage::setTotalSupply);
+            fieldsMap.put("domestic_demand_pool", ProductStorage::setMaxDemand);
+            fieldsMap.put("actual_sold_domestic", (productStorage, value) -> {
+                productStorage.setActualSoldDomestic(value);
+                productStorage.setActualDemand(value);
+            });
 
-                storage.totalSupply = Float.valueOf(everyGood.getValue());
-            }
+            for (Map.Entry<String, BiConsumer<ProductStorage, Float>> entry : fieldsMap.entrySet()) {
+                GenericObject object = countryObject.getChild(entry.getKey());
+                for (ObjectVariable productVar : object.values) {
+                    Product product = findProduct(productVar.getName());
+                    ProductStorage storage = country.findStorage(product);
 
-            // load max demand
-            GenericObject foundMaxDemand = countryObject.getChild("domestic_demand_pool");
-            for (ObjectVariable everyGood : foundMaxDemand.values) {
-                Product product = findProduct(everyGood.getName());
-                ProductStorage storage = country.findStorage(product);
+                    entry.getValue().accept(storage, Float.valueOf(productVar.getValue()));
 
-                storage.maxDemand = Float.valueOf(everyGood.getValue());
-            }
-
-            // load internal consumption
-            GenericObject foundSold = countryObject.getChild("actual_sold_domestic");
-            for (ObjectVariable everyGood : foundSold.values) {
-                Product product = findProduct(everyGood.getName());
-                ProductStorage storage = country.findStorage(product);
-
-                storage.actualSoldDomestic = Float.valueOf(everyGood.getValue());
-                storage.actualDemand = storage.actualSoldDomestic;
+                }
             }
 
             //count factory workers
@@ -366,12 +330,6 @@ public class Report {
                     //if it has employment, it is a factory
                     GenericObject employment = building.getChild("employment");
                     if (employment != null) {
-                        //todo this is for testing purposes only
-                        Product output = findProductPrefix(getProductNameFactory(building.getString("building")));
-                        if (output == Product.getUnknownProduct()) {
-                            unknownFactoryTypes.add(building.getString("building"));
-                        }
-
                         GenericObject stockpile = building.getChild("stockpile");
 
                         //assuming that factory stockpile is close to its consumption the previous day
@@ -429,13 +387,6 @@ public class Report {
                     } else if (object.name.equalsIgnoreCase("clerks") || object.name.equalsIgnoreCase("craftsmen")) {
                         owner.workforceFactory += popSize;
                     } else if (object.name.equalsIgnoreCase("artisans") && object.containsValue("production_type")) {
-                        String productName = getProductNameArtisans(object.getString("production_type"));
-
-                        //todo this is for testing purposes only
-                        Product output = findProduct(productName);
-                        if (output.equals(Product.getUnknownProduct())) {
-                            unknownArtisanTypes.add(object.getString("production_type"));
-                        }
 
                         GenericObject stockpile = object.getChild("stockpile");
                         if (stockpile != null) {
@@ -449,10 +400,6 @@ public class Report {
                         //exact rgo output is not shown, we can guess based on last_income
                         Product output = findProduct(object.getString("goods_type"));
                         double lastIncome = object.getDouble("last_income") / 1000;
-/*
-                        double sold = lastIncome / output.getPrice();
-                        owner.addSold(output, (float) sold);
-*/
 
                         // gold income calculation
                         if (output.getName().equalsIgnoreCase("precious_metal"))
@@ -476,11 +423,11 @@ public class Report {
      */
     private boolean readProductInfo(String path) {
         boolean result = false;
-        String goodsPath = path + "/common/goods.txt";
+        Path goodsPath = Paths.get(path, "common", "goods.txt");
 
-        if (path != null && !path.isEmpty() && Files.exists(Paths.get(goodsPath))) {
+        if (!path.isEmpty() && Files.exists(goodsPath)) {
 
-            GenericObject root = EUGFileIO.load(goodsPath);
+            GenericObject root = EUGFileIO.load(goodsPath.toString());
             if (root != null) {
                 List<GenericObject> list;
 
@@ -494,7 +441,15 @@ public class Report {
                 for (String type : productTypes) {
                     list = root.getChild(type).children;
                     for (GenericObject object : list) {
-                        findProduct(object.name).basePrice = Float.valueOf(object.values.get(0).getValue());
+                        Product product = findProductOrCreate(object.name);
+                        product.basePrice = (float) object.getDouble("cost");
+
+                        //set color
+                        GenericList rgb = object.getList("color");
+                        double red = Double.valueOf(rgb.get(0)) / 255.;
+                        double green = Double.valueOf(rgb.get(1)) / 255.;
+                        double blue = Double.valueOf(rgb.get(2)) / 255.;
+                        product.setColor(new Color(red, green, blue, 1));
                     }
                 }
                 result = true;
@@ -503,30 +458,6 @@ public class Report {
         if (!result) System.out.println("Nash: failed to read " + goodsPath);
         return result;
 
-    }
-
-    private Product findProductFromTypeArtisans(String productionType) {
-        Product tmp = findProductPrefix(getProductNameArtisans(productionType));
-        return tmp != null ? tmp : Product.getUnknownProduct();
-    }
-
-    private Product findProductFromTypeFactory(String buildingType) {
-        Product tmp = findProductPrefix(getProductNameFactory(buildingType));
-        return tmp != null ? tmp : Product.getUnknownProduct();
-    }
-
-    private static String getProductNameArtisans(String productionType) {
-        String name = productionType.replace("artisan_", "").replace("winery", "wine");
-        if (convoys.contains(name)) {
-            name = name + "_convoy";
-        }
-
-        return name;
-    }
-
-    private static String getProductNameFactory(String buildingType) {
-        //Most of HoD factory names handled here
-        return getProductNameArtisans(buildingType.replaceAll("_(factory|distillery|mill|[a-z]+yard)$", ""));
     }
 
     /**
