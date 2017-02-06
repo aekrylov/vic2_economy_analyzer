@@ -28,9 +28,6 @@ public class ProductController extends ChartsController {
                 continue;
 
             float value = getter.apply(productStorage);
-            //filter negative gdp
-            if (value <= 0)
-                continue;
 
             slices.add(new ChartSlice(country.getTag(), value));
             total += value;

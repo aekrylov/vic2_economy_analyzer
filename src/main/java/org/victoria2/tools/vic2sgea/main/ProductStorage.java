@@ -68,8 +68,13 @@ public class ProductStorage extends EconomySubject {
                 actualSupply = actualSoldDomestic;
         }
 
-        //todo
         gdp += actualSupply;
+
+        //if gdp is positive, it means that less goods were consumed than produced.
+        // Since producers consume domestic goods first, no need to change gdp
+        //if gdp is negative, it means that more goods were consumed than produced.
+        // The remaining were imported, so set gdp to 0
+        gdp = Math.max(gdp, 0);
 
         //calculating import (without wasted)
         imported = Math.max(actualDemand - actualSupply, 0);
