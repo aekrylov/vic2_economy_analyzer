@@ -40,6 +40,7 @@
                 <version>8.7.0</version>
                 <configuration>
                     <mainClass>org.victoria2.tools.vic2sgea.gui.Main</mainClass>
+                    <jfxMainAppJarName>Vic2SGEA.jar</jfxMainAppJarName>
                 </configuration>
             </plugin>
 
