@@ -116,15 +116,7 @@ public class Report {
     }
 
     public Product findProduct(String name) {
-        Product tmp = productMap.get(name);
-        if (tmp != null)
-            return tmp;
-
-        //handle convoys
-        if (convoys.contains(name))
-            return productMap.get(name + "_convoy");
-
-        return null;
+        return productMap.get(name);
     }
 
     private Product findProductOrCreate(String name) {
@@ -284,7 +276,7 @@ public class Report {
      */
     private Vic2SaveGameNash readSaveBody(String savePath, GenericObject eugSave) {
 
-        System.out.println("Properties.VERSION = " + Properties.VERSION);
+        System.out.println("VERSION = " + new Properties().getVersion());
 
         System.out.println("Nash: openning Vic2SaveGame...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
         Vic2SaveGameNash save = new Vic2SaveGameNash(eugSave, savePath, "", "");

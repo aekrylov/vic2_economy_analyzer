@@ -11,11 +11,15 @@ import java.io.InputStream;
  */
 public class Config extends java.util.Properties {
 
-    private static final String FILE_PATH = "./vic2sgea.properties";
+    private static final String FILE_PATH = "./path.txt";
 
     public void load() throws IOException {
         InputStream in = new FileInputStream(FILE_PATH);
         load(in);
+    }
+
+    public Config() throws IOException {
+        load();
     }
 
     public void save() throws IOException {

@@ -4,7 +4,7 @@
 
     <groupId>org.victoria2.tools</groupId>
     <artifactId>vic2sgea</artifactId>
-    <version>0.11.2</version>
+    <version>0.11.3</version>
     <packaging>jar</packaging>
 
     <name>vic2sgea</name>
@@ -45,5 +45,13 @@
             </plugin>
 
         </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
     </build>
 </project>

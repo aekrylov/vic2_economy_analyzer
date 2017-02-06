@@ -82,6 +82,7 @@ public class ProductStorage extends EconomySubject {
         //calculating exported
         if (!product.name.equalsIgnoreCase("precious_metal")) {
             exported = Math.max(actualSupply - actualDemand, 0);//???!!!!
+            //exported = 0 + thrownToMarket * product.actualSoldWorld / product.worldmarketPool;
         }
 
     }

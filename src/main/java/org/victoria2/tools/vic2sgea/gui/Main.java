@@ -8,11 +8,10 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import org.victoria2.tools.vic2sgea.main.Country;
 import org.victoria2.tools.vic2sgea.main.Product;
+import org.victoria2.tools.vic2sgea.main.Properties;
 import org.victoria2.tools.vic2sgea.main.Report;
 
 import java.io.IOException;
-
-import static org.victoria2.tools.vic2sgea.main.Properties.VERSION;
 
 public class Main extends Application {
 
@@ -28,7 +27,9 @@ public class Main extends Application {
         Parent root = windowLoader.load();
         WindowController windowController = windowLoader.getController();
 
-        stage.setTitle("Victoria II SGEA v" + VERSION);
+        Properties props = new Properties();
+
+        stage.setTitle("Victoria II SGEA v" + props.getVersion());
         stage.setScene(new Scene(root));
         //stage.setMinWidth(700);
         //stage.setMinHeight(500);

@@ -11,6 +11,8 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
@@ -154,6 +156,7 @@ public class WindowController extends BaseController implements Initializable {
         setCellFactory(colActualSupply, new KmgConverter<>());
         setCellFactory(colGdp, new KmgConverter<>());
         setCellFactory(colGDPPart, new PercentageConverter());
+        setCellFactory(colGDPPer, new NiceFloatConverter());
         setCellFactory(colActualSupplyWithDeductions, new KmgConverter<>());
         setCellFactory(colWorkforce, new KmgConverter<>());
         setCellFactory(colEmployment, new KmgConverter<>());
@@ -167,6 +170,12 @@ public class WindowController extends BaseController implements Initializable {
         colImport.setVisible(false);
         colActualSupplyWithDeductions.setVisible(false);
 
+        /*try {
+            Config config = new Config();
+        } catch (IOException e) {
+            e.printStackTrace();
+            errorAlert(e, "Couldn't load config");
+        }*/
         PathKeeper.checkPaths();
         tfLocalization.setText(PathKeeper.LOCALISATION_PATH);
         tfSaveGame.setText(PathKeeper.SAVE_PATH);
@@ -238,24 +247,7 @@ public class WindowController extends BaseController implements Initializable {
                     // TODO error handling in GUI
                     e.printStackTrace();
                     System.out.println("Nash: ups... " + e.getLocalizedMessage());
-                    Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.ERROR, e.getLocalizedMessage(), ButtonType.OK);
-                        alert.setContentText(e.getLocalizedMessage());
-
-                        StringWriter sw = new StringWriter();
-                        PrintWriter pw = new PrintWriter(sw);
-                        e.printStackTrace(pw);
-
-/*
-                        TextArea text = new TextArea(sw.toString());
-                        text.setEditable(false);
-                        text.setWrapText(true);
-                        alert.getDialogPane().getChildren().add(text);
-*/
-
-                        alert.setContentText(sw.toString());
-                        alert.show();
-                    });
+                    errorAlert(e, "Exception while loading savegame");
                 } finally {
                     Platform.runLater(() -> setInterfaceEnabled(true));
                 }
@@ -337,6 +329,39 @@ public class WindowController extends BaseController implements Initializable {
     public void setProductListController(ProductListController productListController) {
         this.productListController = productListController;
     }
+
+    private static void errorAlert(Throwable e, String text) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(text);
+
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            String exceptionText = sw.toString();
+
+            Label label = new Label("The exception stacktrace was:");
+
+            TextArea textArea = new TextArea(exceptionText);
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
+
+            textArea.setMaxWidth(Double.MAX_VALUE);
+            textArea.setMaxHeight(Double.MAX_VALUE);
+            GridPane.setVgrow(textArea, Priority.ALWAYS);
+            GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+            GridPane expContent = new GridPane();
+            expContent.setMaxWidth(Double.MAX_VALUE);
+            expContent.add(label, 0, 0);
+            expContent.add(textArea, 0, 1);
+
+            // Set expandable Exception into the dialog pane.
+            alert.getDialogPane().setExpandableContent(expContent);
+
+            alert.show();
+        });
+    }
 }
 
 class KmgConverter<T extends Number> extends StringConverter<T> {
@@ -358,6 +383,20 @@ class PercentageConverter extends StringConverter<Float> {
     @Override
     public String toString(Float object) {
         return Wrapper.toPercentage(object);
+    }
+
+    //don't need this
+    @Override
+    public Float fromString(String string) {
+        return null;
+    }
+}
+
+class NiceFloatConverter extends StringConverter<Float> {
+
+    @Override
+    public String toString(Float object) {
+        return String.format("%6.2f", object);
     }
 
     //don't need this
