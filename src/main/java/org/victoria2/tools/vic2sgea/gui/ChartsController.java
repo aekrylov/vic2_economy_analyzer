@@ -120,7 +120,8 @@ public class ChartsController extends BaseController {
                 .collect(Collectors.toList());
 
         PieChart chart = addChart(pieChartData, column, row, title, onEnter, onClick);
-        slices.forEach(ChartSlice::setColor);
+        //todo ugly colors
+        //slices.forEach(ChartSlice::setColor);
 
         return chart;
 

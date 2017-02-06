@@ -271,7 +271,7 @@ public class Report {
 
             List<ObjectVariable> list = object.values;
             for (ObjectVariable var : list) {
-                setter.accept(productMap.get(var.getName()), Float.valueOf(var.getValue()));
+                setter.accept(findProductOrCreate(var.getName()), Float.valueOf(var.getValue()));
             }
         }
 
