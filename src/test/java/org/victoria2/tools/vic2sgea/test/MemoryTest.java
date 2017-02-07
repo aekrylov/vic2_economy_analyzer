@@ -22,9 +22,8 @@ public class MemoryTest {
             Report report = new Report(saveName, null, null, true);
             memoryUsage += runtime.totalMemory() - runtime.freeMemory();
         }
-        System.err.println();
-        System.err.println("Avg memory usage with filter: " + memoryUsage / TRIES);
-        System.err.println();
+
+        long memUsageFilter = memoryUsage / TRIES;
 
         memoryUsage = 0;
         System.out.println("Testing without filter");
@@ -33,8 +32,10 @@ public class MemoryTest {
             Report report = new Report(saveName, null, null, false);
             memoryUsage += runtime.totalMemory() - runtime.freeMemory();
         }
+        long memUsageNoFilter = memoryUsage / TRIES;
+
         System.err.println();
-        System.err.println("Avg mem usage without filter: " + memoryUsage / TRIES);
-        System.err.println();
+        System.err.println("Avg memory usage with filter: " + memUsageFilter);
+        System.err.println("Avg mem usage without filter: " + memUsageNoFilter);
     }
 }

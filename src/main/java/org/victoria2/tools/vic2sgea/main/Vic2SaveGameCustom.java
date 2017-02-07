@@ -18,18 +18,20 @@ public class Vic2SaveGameCustom extends Vic2SaveGame {
 
     public Vic2SaveGameCustom(GenericObject root) {
         super(root, "", "", "");
+        preloadProvinces();
+        preloadCountries();
+        preloadStates();
     }
 
-    protected Map<GenericObject, List<GenericObject>> states = new HashMap<>();
+    protected Map<GenericObject, List<GenericObject>> states;
 
     private void initStates() {
-        for (GenericObject obj : countries) {
+        states = new HashMap<>();
+        for (GenericObject obj : getCountries()) {
             List<GenericObject> countryStates = new ArrayList<>();
             states.put(obj, countryStates);
-            for (GenericObject state : obj.children) {
-                if (state.name.equalsIgnoreCase("state")) {
-                    countryStates.add(state);
-                }
+            for (GenericObject state : obj.getChildren("state")) {
+                countryStates.add(state);
             }
         }
 

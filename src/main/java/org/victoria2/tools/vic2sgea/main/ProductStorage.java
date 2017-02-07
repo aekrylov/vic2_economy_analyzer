@@ -54,7 +54,6 @@ public class ProductStorage extends EconomySubject {
     }
 
     public void innerCalculations() {
-        gdp = 0;
         // calculating actual supply
         float thrownToMarket = (totalSupply - actualSoldDomestic);
         if (thrownToMarket <= 0)

@@ -19,7 +19,9 @@ public class Report {
 
     public static final String TOTAL_TAG = "TOT";
 
+    // name -> product
     private Map<String, Product> productMap = new HashMap<>();
+    //tag -> country
     private Map<String, Country> countries = new HashMap<>();
 
     public Product findProduct(String name) {
@@ -80,14 +82,10 @@ public class Report {
 
         System.out.println("Nash: loading savegame... free memory is " + ReportHelpers.getFreeMemory());
         GenericObject root = filter ? EUGFileIO.load(savePath, new UnwantedObjectFilter()) : EUGFileIO.load(savePath);
-        loadMisc(root);
 
         loadGlobalProductInfo(root);
 
         Vic2SaveGameCustom save = new Vic2SaveGameCustom(root);
-        save.preloadProvinces();
-        save.preloadCountries();
-        save.preloadStates();
 
         System.out.println("Nash: processing savegame data... free memory is " + ReportHelpers.getFreeMemory());
         loadCountries(save);
@@ -97,6 +95,8 @@ public class Report {
         System.out.println("Nash: reading localizations...  free memory is " + ReportHelpers.getFreeMemory());
         readLocalisations(gamePath);
         readLocalisations(modPath);
+
+        loadMisc(root);
     }
 
     public Report(String savePath, String gamePath, String modPath) {
@@ -202,7 +202,6 @@ public class Report {
             country.GDPPlace = calc;
             calc++;
         }
-
     }
 
     /**
@@ -357,14 +356,19 @@ public class Report {
                 "leader", "army", "navy", "trade", "ai",
                 "rebel_faction", "previous_war", "news_collector");
 
+        //todo names duplicate
+        private static final List<String> countryTags = Arrays.asList("saved_country_supply",
+                "domestic_demand_pool", "actual_sold_domestic", "state");
+
         //todo leave only the tags needed
         @Override
         public Boolean apply(GenericObject object) {
-            return !(unwantedCommonTags.contains(object.name));
+            return !(unwantedCommonTags.contains(object.name) ||
+                    (isCountry(object.getParent()) && !countryTags.contains(object.name)));
         }
 
         private boolean isCountry(GenericObject object) {
-            return object.name.matches("[A-Z][A-Z0-9]{2}");
+            return object.name.matches("[A-Z][A-Z0-9]{2}") && !object.isRoot() && object.getParent().isRoot();
         }
 
         private boolean isProvince(GenericObject object) {

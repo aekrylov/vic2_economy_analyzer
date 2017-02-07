@@ -77,8 +77,6 @@ public class ReportHelpers {
                     products.add(product);
                 }
             }
-        } else {
-            System.out.println("Nash: failed to read " + goodsPath);
         }
         return products;
 
