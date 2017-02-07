@@ -12,6 +12,7 @@ import eug.shared.Version;
 
 import java.io.*;
 import java.util.Calendar;
+import java.util.function.Function;
 
 /**
  * Static class which performs I/O of {@link GenericObject GenericObjects}.
@@ -43,6 +44,11 @@ public final class EUGFileIO {
     public static GenericObject load(String filename) {
         final CWordFile f = new CWordFile();
         return f.load(filename);
+    }
+
+    public static GenericObject load(String filename, Function<GenericObject, Boolean> objectFilter) {
+        final CWordFile f = new CWordFile();
+        return f.load(filename, objectFilter);
     }
 
     /**

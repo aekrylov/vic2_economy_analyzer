@@ -29,7 +29,7 @@ public class ProductListController extends BaseController implements Initializab
     @FXML
     TableColumn<Product, Float> colRealSupply;
     @FXML
-    TableColumn<Product, Float> colActualBought;
+    TableColumn<Product, Float> colActualSupply;
     @FXML
     TableColumn<Product, Float> colAffordable;
     @FXML
@@ -62,8 +62,8 @@ public class ProductListController extends BaseController implements Initializab
         setFactory(colName, Product::getName);
         setFactory(colConsumption, Product::getConsumption);
         setFactory(colRealSupply, Product::getSupply);
-        setFactory(colActualBought, Product::getActualBought);
-        colActualBought.setVisible(false);
+        setFactory(colActualSupply, Product::getActualSupply);
+        colActualSupply.setVisible(false);
         setFactory(colAffordable, Product::getDemand);
         setFactory(colMaxDemand, Product::getMaxDemand);
         setFactory(colBasePrice, Product::getBasePrice);
@@ -83,7 +83,7 @@ public class ProductListController extends BaseController implements Initializab
         productsTableItems.clear();
 
         //todo is it necessary?
-        Product total = new Product("Total (pounds)", 0);
+        Product total = new Product("Total (pounds)");
         for (Product product : products) {
             total.supply += product.getSupply() * product.price;
             total.consumption += product.getConsumption() * product.price;
@@ -91,7 +91,7 @@ public class ProductListController extends BaseController implements Initializab
             total.maxDemand += product.getMaxDemand() * product.price;
             total.basePrice += product.getBasePrice();
             total.price += product.getPrice();
-            total.actualBought += product.getActualBought() * product.price;
+            total.actualSupply += product.getActualSupply() * product.price;
 
         }
         total.basePrice = total.basePrice / products.size();

@@ -6,17 +6,12 @@ import javafx.scene.paint.Color;
  * @author nash
  *         This is static-alike class for report
  */
-public class Product {
-    private static final Product UNKNOWN_PRODUCT = new Product("unknown", 0);
-
-    public static Product getUnknownProduct() {
-        return UNKNOWN_PRODUCT;
-    }
+public class Product implements Comparable<Product> {
 
     /**
      * global
      */
-    public float price = 0;
+    public float price;
     /**
      * global, in pieces
      */
@@ -44,7 +39,7 @@ public class Product {
     /**
      * global
      */
-    public float actualBought;
+    public float actualSupply;
     /**
      * global, in pieces, how much was thrown to global market
      */
@@ -57,9 +52,13 @@ public class Product {
 
     private Color color;
 
-    public Product(String iname, float iprice) {
-        this.name = iname;
-        this.price = iprice;
+    public Product(String name) {
+        this.name = name;
+    }
+
+    public Product(String name, float basePrice) {
+        this.name = name;
+        this.basePrice = basePrice;
     }
 
     public String getName() {
@@ -90,8 +89,8 @@ public class Product {
         return maxDemand;
     }
 
-    public float getActualBought() {
-        return actualBought;
+    public float getActualSupply() {
+        return actualSupply;
     }
 
     public float getBasePrice() {
@@ -150,8 +149,8 @@ public class Product {
         this.trend = trend;
     }
 
-    public void setActualBought(float actualBought) {
-        this.actualBought = actualBought;
+    public void setActualSupply(float actualSupply) {
+        this.actualSupply = actualSupply;
     }
 
     public void setWorldmarketPool(float worldmarketPool) {
@@ -178,5 +177,10 @@ public class Product {
 
     public void setColor(Color color) {
         this.color = color;
+    }
+
+    @Override
+    public int compareTo(Product o) {
+        return name.compareTo(o.name);
     }
 }

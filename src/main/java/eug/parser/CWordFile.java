@@ -5,6 +5,7 @@ import eug.shared.GenericObject;
 
 import javax.swing.*;
 import java.io.*;
+import java.util.function.Function;
 
 /**
  * This class handles the parsing of .eug files. For most uses, you will want to
@@ -193,6 +194,64 @@ public class CWordFile {
             //reading loop (per line mainly)
             while (tokenType != TokenType.EOF) {
                 curr = readObject(curr);
+            }
+        } catch (ParserException ex) {
+            System.err.println(ex.getMessage());
+            if (!settings.isTryToRecover())
+                root = null;
+        } finally {
+            closeInStream();
+        }
+
+        //Tell some things about the current state:
+        if (numErrors > 0)
+            System.out.println("There were " + numErrors + " errors during loading.");
+//        System.out.println("Read " + tokenizer.getCharsRead() + " bytes.");
+        if (settings.isPrintTimingInfo())
+            System.out.println("Loading took " + (System.nanoTime() - startTime) + " ns.\n");
+
+        return root;
+    }
+
+    /**
+     * Loads a {@link GenericObject} tree from the given filename with a given object filter.
+     *
+     * @param filename     the name of the file containing an EUG tree (e.g., a savegame
+     *                     or an event file).
+     * @param objectFilter function that returns if the object just read should be kept in structure.
+     *                     This function is called every time an object is read
+     * @return the <code>GenericObject</code> tree loaded from the file, or
+     * <code>null</code> if there was an error during loading.
+     * TODO remove code duplication
+     * TODO filter objects before reading
+     */
+    public GenericObject load(final String filename, Function<GenericObject, Boolean> objectFilter) {
+        final long startTime = System.nanoTime();
+
+        if (!openInStream(filename))
+            return null;
+
+        //notify about loading
+        if (settings.isPrintTimingInfo())
+            System.out.println("Loading " + filename + ".");
+
+        GenericObject root = null;
+
+        try {
+            root = new GenericObject();
+
+            GenericObject curr = readObject(root);
+
+            //reading loop (per line mainly)
+            while (tokenType != TokenType.EOF) {
+                GenericObject next = readObject(curr);
+
+                if (next == curr.getParent()) { //finished reading curr
+                    if (!objectFilter.apply(curr)) {
+                        next.removeChild(curr);
+                    }
+                }
+                curr = next;
             }
         } catch (ParserException ex) {
             System.err.println(ex.getMessage());

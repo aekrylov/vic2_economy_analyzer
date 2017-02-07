@@ -54,6 +54,7 @@ public class ProductStorage extends EconomySubject {
     }
 
     public void innerCalculations() {
+        gdp = 0;
         // calculating actual supply
         float thrownToMarket = (totalSupply - actualSoldDomestic);
         if (thrownToMarket <= 0)
@@ -84,6 +85,8 @@ public class ProductStorage extends EconomySubject {
             exported = Math.max(actualSupply - actualDemand, 0);//???!!!!
             //exported = 0 + thrownToMarket * product.actualSoldWorld / product.worldmarketPool;
         }
+
+        product.actualSupply += actualSupply;
 
     }
 

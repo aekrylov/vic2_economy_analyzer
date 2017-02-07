@@ -7,7 +7,7 @@
     <columns>
         <TableColumn prefWidth="131.0" text="Name" fx:id="colName"/>
         <TableColumn prefWidth="113.0" text="Supply" fx:id="colRealSupply"/>
-        <TableColumn prefWidth="113.0" text="Actual bought" fx:id="colActualBought"/>
+        <TableColumn prefWidth="113.0" text="Actual supply" fx:id="colActualSupply"/>
         <TableColumn prefWidth="124.0" text="Consumption" fx:id="colConsumption"/>
         <TableColumn prefWidth="129.0" text="Affordable" fx:id="colAffordable"/>
         <TableColumn prefWidth="124.0" text="Max demand" fx:id="colMaxDemand"/>

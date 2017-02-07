@@ -50,6 +50,12 @@ public abstract class EconomySubject {
         gdp += that.gdp;
     }
 
+    /**
+     * This method should calculate any computational heavy values
+     * It makes object state consistent
+     */
+    public abstract void innerCalculations();
+
     public float getActualSupply() {
         return actualSupply;
     }

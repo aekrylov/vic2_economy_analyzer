@@ -1,17 +1,13 @@
 package org.victoria2.tools.vic2sgea.main;
 
 import eug.parser.EUGFileIO;
-import eug.shared.GenericList;
 import eug.shared.GenericObject;
 import eug.shared.ObjectVariable;
-import javafx.scene.paint.Color;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Report {
@@ -21,19 +17,17 @@ public class Report {
     private Country playerCountry;
     private String startDate;
 
-    private static String modPath;
-    private static String localisationPath;
-
     public static final String TOTAL_TAG = "TOT";
 
-    private static final List<String> convoys = Arrays.asList("steamer", "clipper");
+    private Map<String, Product> productMap = new HashMap<>();
+    private Map<String, Country> countries = new HashMap<>();
 
-    public static void setModPath(String modPath) {
-        Report.modPath = modPath;
+    public Product findProduct(String name) {
+        return productMap.get(name);
     }
 
-    public static void setLocalisationPath(String localisationPath) {
-        Report.localisationPath = localisationPath;
+    private Product findProductOrCreate(String name) {
+        return productMap.computeIfAbsent(name, Product::new);
     }
 
     public String getCurrentDate() {
@@ -61,37 +55,82 @@ public class Report {
     }
 
     /**
-     * Returns list localisation/*.csv file for given path
-     * Half finished, will probably not be completed.
+     * Reads the specified save game file fully and constructs full report
+     *
+     * @param savePath path to save file
+     * @param filter if object filter should be used while loading save game
+     * @throws RuntimeException if runtime exception occurs
      */
-    private static List<File> getLocalisations(String path) throws NullPointerException {
+    public Report(String savePath, String gamePath, String modPath, boolean filter) throws RuntimeException {
+        Country total = new Country(TOTAL_TAG);
+        total.population = 1;
+        countries.put(TOTAL_TAG, total);
 
-        /*String [] unwanted = {"darkness.csv", "1.1.csv", "1.3.csv", "1.4.csv", "beta1.csv", "beta3.csv", "darkness_3_02.csv",
-                "darkness_3_03.csv",
-				"event_news.csv",
-				"event_news_3_01.csv",
-				"housedivided2_1.csv",
-				"housedivided2_2.csv",
-				"housedivided2_3.csv",
-				"newspaper_text.csv",
-		"newstext_3_01.csv" };*/
+        System.out.println("Loading products");
+        //load all existing products
+        Set<Product> products = ReportHelpers.readProducts(modPath);
+        if (products == null)
+            products = ReportHelpers.readProducts(gamePath);
+        else
+            products.addAll(ReportHelpers.readProducts(gamePath));
 
-        //the correct platform independent way to join paths
-        File folder = Paths.get(path, "localisation").toFile();
-        File[] files = folder.listFiles();
+        productMap = products.stream()
+                .collect(Collectors.toMap(Product::getName, Function.identity()));
 
-        return Arrays.stream(files)
-                .filter(file -> file.isFile() && file.getName().toLowerCase().endsWith(".csv"))
-                .collect(Collectors.toList());
+
+        System.out.println("Nash: loading savegame... free memory is " + ReportHelpers.getFreeMemory());
+        GenericObject root = filter ? EUGFileIO.load(savePath, new UnwantedObjectFilter()) : EUGFileIO.load(savePath);
+        loadMisc(root);
+
+        loadGlobalProductInfo(root);
+
+        Vic2SaveGameCustom save = new Vic2SaveGameCustom(root);
+        save.preloadProvinces();
+        save.preloadCountries();
+        save.preloadStates();
+
+        System.out.println("Nash: processing savegame data... free memory is " + ReportHelpers.getFreeMemory());
+        loadCountries(save);
+        loadPops(save);
+        countTotals();
+
+        System.out.println("Nash: reading localizations...  free memory is " + ReportHelpers.getFreeMemory());
+        readLocalisations(gamePath);
+        readLocalisations(modPath);
     }
 
-    private Map<String, Product> productMap = new HashMap<>();
-
-    {
-        productMap.put("unknown", Product.getUnknownProduct());
+    public Report(String savePath, String gamePath, String modPath) {
+        this(savePath, gamePath, modPath, true);
     }
 
-    private Map<String, Country> countries = new HashMap<>();
+    /**
+     * Loads dates and player country
+     *
+     * @param root root of savegame
+     */
+    private void loadMisc(GenericObject root) {
+        currentDate = root.getString("date");
+        playerCountry = countries.get(root.getString("player"));
+        startDate = root.getString("start_date");
+
+    }
+
+    /**
+     * Reads localisations for given game/mod path
+     */
+    private void readLocalisations(String path) {
+
+        try {
+            List<File> loclist = ReportHelpers.getLocalisationFiles(path);
+            for (File csv : loclist) {
+                readCountryNames(csv);
+            }
+
+        } catch (NullPointerException | IOException e) {
+            System.err.println("Nash: Some or all the of the csv files could not be loaded");
+        }
+
+    }
 
     /**
      * Reads the given file and for any given line checks if the tag is equal to the
@@ -115,78 +154,11 @@ public class Report {
         in.close();
     }
 
-    public Product findProduct(String name) {
-        return productMap.get(name);
-    }
-
-    private Product findProductOrCreate(String name) {
-        return productMap.computeIfAbsent(name, k -> new Product(k, -1));
-    }
-
-    /**
-     * Reads localisations for given game path
-     */
-    private void readLocalisations(String path) {
-
-        try {
-            List<File> loclist = getLocalisations(path);
-
-            if (modPath != null && new File(modPath).exists()) {
-                loclist.addAll(getLocalisations(modPath));
-            }
-
-            for (File csv : loclist) {
-                readCountryNames(csv);
-            }
-
-        } catch (NullPointerException | IOException e) {
-            System.err.println("Nash: Some or all the of the csv files could not be loaded");
-        }
-
-    }
-
-    /**
-     * Set country name
-     */
-    synchronized private void setCountryName(String tag, String name) {
+    private void setCountryName(String tag, String name) {
         try {
             countries.get(tag).setOfficialName(name);
         } catch (NullPointerException ignored) {
         }
-    }
-
-    /**
-     * Reads the specified save game file fully and constructs full report
-     *
-     * @param filePath path to save file
-     * @throws RuntimeException if runtime exception occurs
-     */
-    public Report(String filePath) throws RuntimeException {
-        Country total = new Country(TOTAL_TAG);
-        total.population = 1;
-        countries.put(TOTAL_TAG, total);
-
-
-        System.out.println("Loading products");
-        //load all existing products
-        if (!readProductInfo(modPath))
-            readProductInfo(localisationPath);
-
-
-        System.out.println("Nash: reading EUG head... free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        GenericObject head = readSaveHead(filePath);
-
-        System.out.println("Nash: reading EUG... free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        Vic2SaveGameNash save = readSaveBody(filePath, head);
-        System.out.println("Nash: processing POPs... free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        countPops(save);
-
-        System.out.println("Nash: reading localizations...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        readLocalisations(localisationPath);
-
-        PathKeeper.save();
-        System.out.println("Nash: processing data...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        countTotals();
     }
 
     /**
@@ -209,22 +181,17 @@ public class Report {
                 continue;
 
             // calculating real totalSupply (without wasted)
-            country.innerCalculation();
-
+            country.innerCalculations();
             totalCountry.add(country);
 
             for (ProductStorage storage : country.getStorage().values()) {
-                storage.product.actualBought += storage.getActualSupply();
-
                 ProductStorage totalStorage = totalCountry.findStorage(storage.product);
-
                 totalStorage.add(storage);
             }
         }
 
-        //totalCountry.innerCalculation();
+        //totalCountry.innerCalculations();
         totalCountry.setOfficialName("Total");
-
         for (Country country : countryList) {
             country.calcGdpPart(totalCountry);
         }
@@ -238,13 +205,18 @@ public class Report {
 
     }
 
-    private GenericObject readSaveHead(String savePath) throws RuntimeException {
+    /**
+     * Loads global product info
+     *
+     * @param root root object of savegame file
+     * @throws NullPointerException if savegame is invalid
+     */
+    private void loadGlobalProductInfo(GenericObject root) throws NullPointerException {
 
         //------------------------------------
         // global data loading
         //------------------------------------
-        GenericObject eugSave = EUGFileIO.load(savePath);
-        GenericObject worldmarket = eugSave.getChild("worldmarket");
+        GenericObject worldmarket = root.getChild("worldmarket");
 
         //load global product data
         Map<String, BiConsumer<Product, Float>> fieldMap = new HashMap<>();
@@ -266,27 +238,13 @@ public class Report {
                 setter.accept(findProductOrCreate(var.getName()), Float.valueOf(var.getValue()));
             }
         }
-
-        return eugSave;
-
     }
 
     /**
-     * Should contain EUG file reading only
+     * Loads countries, states and buildings
      */
-    private Vic2SaveGameNash readSaveBody(String savePath, GenericObject eugSave) {
+    private void loadCountries(Vic2SaveGameCustom save) {
 
-        System.out.println("VERSION = " + new Properties().getVersion());
-
-        System.out.println("Nash: openning Vic2SaveGame...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        Vic2SaveGameNash save = new Vic2SaveGameNash(eugSave, savePath, "", "");
-
-        System.out.println("Nash: preload Provinces...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        save.preloadProvinces();
-        System.out.println("Nash: preload Countries...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        save.preloadCountries();
-        System.out.println("Nash: preload States...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
-        save.preloadStates();
 
         //------------------------------------
         // country data loading
@@ -315,7 +273,7 @@ public class Report {
             }
 
             //count factory workers
-            for (GenericObject stateObject : countryObject.getChildren("state")) {
+            for (GenericObject stateObject : save.getStates(countryObject)) {
 
                 for (GenericObject building : stateObject.getChildren("state_buildings")) {
 
@@ -329,7 +287,7 @@ public class Report {
                             country.addIntermediate(findProduct(good.getName()), Float.parseFloat(good.getValue()));
                         }
 
-                        country.employmentFactory += getEmployeeCount(building);
+                        country.employmentFactory += ReportHelpers.getEmployeeCount(building);
                     }
                 }
 
@@ -337,24 +295,9 @@ public class Report {
 
             countries.put(country.getTag(), country);
         }
-
-        List<ObjectVariable> head = eugSave.values;
-
-        for (ObjectVariable obj : head) {
-            if (obj.varname.equalsIgnoreCase("date"))
-                currentDate = obj.getValue();
-            if (obj.varname.equalsIgnoreCase("player"))
-                playerCountry = countries.get(obj.getValue());
-            if (obj.varname.equalsIgnoreCase("start_date")) {
-                startDate = obj.getValue();
-                break;
-            }
-        }
-
-        return save;
     }
 
-    private void countPops(Vic2SaveGameNash save) {
+    private void loadPops(Vic2SaveGameCustom save) {
         popCount = 0;
 
         for (GenericObject province : save.provinces.values()) {
@@ -398,7 +341,7 @@ public class Report {
                             owner.goldIncome += lastIncome;
 
                         //count RGO employees
-                        owner.employmentRGO += getEmployeeCount(object);
+                        owner.employmentRGO += ReportHelpers.getEmployeeCount(object);
 
                     }
 
@@ -407,72 +350,25 @@ public class Report {
         }
     }
 
-    /**
-     * Reads product info from the given path (currently only baseprice)
-     *
-     * @param path path to game/mod
-     * @return if goods.txt is found and read
-     */
-    private boolean readProductInfo(String path) {
-        boolean result = false;
-        Path goodsPath = Paths.get(path, "common", "goods.txt");
+    static class UnwantedObjectFilter implements Function<GenericObject, Boolean> {
 
-        if (!path.isEmpty() && Files.exists(goodsPath)) {
+        private static final List<String> unwantedCommonTags = Arrays.asList(
+                "issues", "province_pop_id", "military_construction", "unit_names",
+                "leader", "army", "navy", "trade", "ai",
+                "rebel_faction", "previous_war", "news_collector");
 
-            GenericObject root = EUGFileIO.load(goodsPath.toString());
-            if (root != null) {
-                List<GenericObject> list;
-
-                String[] productTypes = {
-                        "military_goods",
-                        "raw_material_goods",
-                        "industrial_goods",
-                        "consumer_goods"
-                };
-
-                for (String type : productTypes) {
-                    list = root.getChild(type).children;
-                    for (GenericObject object : list) {
-                        Product product = findProductOrCreate(object.name);
-                        product.basePrice = (float) object.getDouble("cost");
-
-                        //set color
-                        GenericList rgb = object.getList("color");
-                        double red = Double.valueOf(rgb.get(0)) / 255.;
-                        double green = Double.valueOf(rgb.get(1)) / 255.;
-                        double blue = Double.valueOf(rgb.get(2)) / 255.;
-                        product.setColor(new Color(red, green, blue, 1));
-                    }
-                }
-                result = true;
-            }
+        //todo leave only the tags needed
+        @Override
+        public Boolean apply(GenericObject object) {
+            return !(unwantedCommonTags.contains(object.name));
         }
-        if (!result) System.out.println("Nash: failed to read " + goodsPath);
-        return result;
 
+        private boolean isCountry(GenericObject object) {
+            return object.name.matches("[A-Z][A-Z0-9]{2}");
+        }
+
+        private boolean isProvince(GenericObject object) {
+            return object.getParent() != null && object.getParent().isRoot() && object.name.matches("[0-9]{1,4}");
+        }
     }
-
-    /**
-     * Adds up all employment->employees counts
-     *
-     * @param object object with employment child tag
-     * @return total count of employees on object, or 0 if object is not valid
-     */
-    private int getEmployeeCount(GenericObject object) {
-        int count = 0;
-
-        try {
-            List<GenericObject> workers = object.getChild("employment").getChild("employees").children;
-            for (GenericObject worker : workers) {
-                if (worker.getInt("count") > 0) {
-                    count += worker.getInt("count");
-                }
-            }
-
-        } catch (NullPointerException | ArrayIndexOutOfBoundsException ignored) {
-        }//if no tag is available
-
-        return count;
-    }
-
 }

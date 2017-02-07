@@ -72,6 +72,12 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return intermediate.computeIfAbsent(product, (k) -> 0.f);
     }
 
+    /**
+     * Adds intermediate consumption for given product in that country
+     *
+     * @param product product
+     * @param value   value of consumption to add
+     */
     public void addIntermediate(Product product, float value) {
         float old = getIntermediate(product);
         intermediate.put(product, old + value);
@@ -79,12 +85,6 @@ public class Country extends EconomySubject implements Comparable<Country> {
         ProductStorage storage = findStorage(product);
         storage.incGdp(-value);
     }
-
-/*
-    public void addSold(Product product, float value) {
-        findStorage(product).incGdp(value);
-    }
-*/
 
     public Country(String tag) {
         super();
@@ -181,7 +181,7 @@ public class Country extends EconomySubject implements Comparable<Country> {
     /**
      * Calculate inside-country data
      */
-    void innerCalculation() {
+    public void innerCalculations() {
         clearCalculated();
         for (ProductStorage productStorage : getStorage().values()) {
 

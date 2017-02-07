@@ -100,11 +100,7 @@ public class WindowController extends BaseController implements Initializable {
 
     private void fillMainTable() {
         countryTableContent.clear();
-
-        for (Country country : report.getCountryList()) {
-            countryTableContent.add(country);
-        }
-
+        countryTableContent.addAll(report.getCountryList());
         mainTable.setItems(countryTableContent);
     }
 
@@ -227,14 +223,14 @@ public class WindowController extends BaseController implements Initializable {
                 //float startTime=0;
 
                 try {
-                    Report.setModPath(tfModPath.getText());
-                    Report.setLocalisationPath(tfLocalization.getText());
+                    String savePath = tfSaveGame.getText();
+                    String modPath = tfModPath.getText();
+                    String gamePath = tfLocalization.getText();
 
                     PathKeeper.save();
 
-                    report = new Report(tfSaveGame.getText());
+                    report = new Report(savePath, gamePath, modPath);
 
-                    System.out.println("Nash: filling table...  free memory is " + Wrapper.toKMG(Runtime.getRuntime().freeMemory()));
                     fillMainTable();
                     productListController.setReport(report);
                     productListController.fillTable(report.getProductList());
@@ -244,9 +240,7 @@ public class WindowController extends BaseController implements Initializable {
                     Platform.runLater(() -> self.setLabels());
 
                 } catch (Exception e) {
-                    // TODO error handling in GUI
                     e.printStackTrace();
-                    System.out.println("Nash: ups... " + e.getLocalizedMessage());
                     errorAlert(e, "Exception while loading savegame");
                 } finally {
                     Platform.runLater(() -> setInterfaceEnabled(true));
@@ -296,8 +290,12 @@ public class WindowController extends BaseController implements Initializable {
         // SaveGame saveGame=new SaveGame();
         try {
             DirectoryChooser dirChooser = new DirectoryChooser();
-            File file = new File(PathKeeper.LOCALISATION_PATH);
-            if (!PathKeeper.LOCALISATION_PATH.isEmpty()) dirChooser.setInitialDirectory(file);
+            File file;
+            if (PathKeeper.LOCALISATION_PATH != null) {
+                file = new File(PathKeeper.LOCALISATION_PATH);
+                if (file.exists())
+                    dirChooser.setInitialDirectory(file);
+            }
             file = dirChooser.showDialog(null);
             String temp = file.getPath().replace("\\", "/"); // Usable path
             tfLocalization.setText(temp);
@@ -316,7 +314,8 @@ public class WindowController extends BaseController implements Initializable {
             File file;
             if (PathKeeper.MOD_PATH != null) {
                 file = new File(PathKeeper.MOD_PATH);
-                if (!PathKeeper.MOD_PATH.isEmpty()) dirChooser.setInitialDirectory(file);
+                if (file.exists())
+                    dirChooser.setInitialDirectory(file);
             }
             file = dirChooser.showDialog(null);
             String temp = file.getPath().replace("\\", "/"); // Usable path
