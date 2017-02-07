@@ -51,6 +51,12 @@ public final class EUGFileIO {
         return f.load(filename, objectFilter);
     }
 
+    public static GenericObject load(String filename, NameFilter nameFilter) {
+        CWordFile f = new CWordFile();
+        f.setNameFilter(nameFilter);
+        return f.load(filename);
+    }
+
     /**
      * Loads a {@link GenericObject} tree from the given file.
      *

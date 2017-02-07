@@ -1,6 +1,7 @@
 package org.victoria2.tools.vic2sgea.main;
 
 import eug.parser.EUGFileIO;
+import eug.parser.NameFilter;
 import eug.shared.GenericObject;
 import eug.shared.ObjectVariable;
 
@@ -349,7 +350,7 @@ public class Report {
         }
     }
 
-    static class UnwantedObjectFilter implements Function<GenericObject, Boolean> {
+    static class UnwantedObjectFilter implements NameFilter {
 
         private static final List<String> unwantedCommonTags = Arrays.asList(
                 "issues", "province_pop_id", "military_construction", "unit_names",
@@ -361,11 +362,6 @@ public class Report {
                 "domestic_demand_pool", "actual_sold_domestic", "state");
 
         //todo leave only the tags needed
-        @Override
-        public Boolean apply(GenericObject object) {
-            return !(unwantedCommonTags.contains(object.name) ||
-                    (isCountry(object.getParent()) && !countryTags.contains(object.name)));
-        }
 
         private boolean isCountry(GenericObject object) {
             return object.name.matches("[A-Z][A-Z0-9]{2}") && !object.isRoot() && object.getParent().isRoot();
@@ -373,6 +369,12 @@ public class Report {
 
         private boolean isProvince(GenericObject object) {
             return object.getParent() != null && object.getParent().isRoot() && object.name.matches("[0-9]{1,4}");
+        }
+
+        @Override
+        public Boolean apply(GenericObject object, String s) {
+            boolean discard = unwantedCommonTags.contains(s) || isCountry(object) && !countryTags.contains(s);
+            return !discard;
         }
     }
 }

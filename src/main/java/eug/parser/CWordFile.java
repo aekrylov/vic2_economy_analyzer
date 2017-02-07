@@ -51,6 +51,8 @@ public class CWordFile {
     // used during loading
     private int newlinesSinceComment = 0;
 
+    private NameFilter nameFilter;
+
     /**
      * Creates a new instance of CWordFile.
      */
@@ -175,42 +177,7 @@ public class CWordFile {
      * <code>null</code> if there was an error during loading.
      */
     public GenericObject load(final String filename) {
-        final long startTime = System.nanoTime();
-
-        if (!openInStream(filename))
-            return null;
-
-        //notify about loading
-        if (settings.isPrintTimingInfo())
-            System.out.println("Loading " + filename + ".");
-
-        GenericObject root = null;
-
-        try {
-            root = new GenericObject();
-
-            GenericObject curr = readObject(root);
-
-            //reading loop (per line mainly)
-            while (tokenType != TokenType.EOF) {
-                curr = readObject(curr);
-            }
-        } catch (ParserException ex) {
-            System.err.println(ex.getMessage());
-            if (!settings.isTryToRecover())
-                root = null;
-        } finally {
-            closeInStream();
-        }
-
-        //Tell some things about the current state:
-        if (numErrors > 0)
-            System.out.println("There were " + numErrors + " errors during loading.");
-//        System.out.println("Read " + tokenizer.getCharsRead() + " bytes.");
-        if (settings.isPrintTimingInfo())
-            System.out.println("Loading took " + (System.nanoTime() - startTime) + " ns.\n");
-
-        return root;
+        return load(filename, null);
     }
 
     /**
@@ -222,8 +189,6 @@ public class CWordFile {
      *                     This function is called every time an object is read
      * @return the <code>GenericObject</code> tree loaded from the file, or
      * <code>null</code> if there was an error during loading.
-     * TODO remove code duplication
-     * TODO filter objects before reading
      */
     public GenericObject load(final String filename, Function<GenericObject, Boolean> objectFilter) {
         final long startTime = System.nanoTime();
@@ -239,20 +204,19 @@ public class CWordFile {
 
         try {
             root = new GenericObject();
-
-            GenericObject curr = readObject(root);
+            GenericObject curr = root;
 
             //reading loop (per line mainly)
-            while (tokenType != TokenType.EOF) {
+            do {
                 GenericObject next = readObject(curr);
-
-                if (next == curr.getParent()) { //finished reading curr
+                if (objectFilter != null && next == curr.getParent()) { //finished reading curr
                     if (!objectFilter.apply(curr)) {
                         next.removeChild(curr);
                     }
                 }
                 curr = next;
-            }
+
+            } while (tokenType != TokenType.EOF);
         } catch (ParserException ex) {
             System.err.println(ex.getMessage());
             if (!settings.isTryToRecover())
@@ -291,6 +255,12 @@ public class CWordFile {
         switch (tokenType) {
             case IDENT:
                 final String name = token;
+                if (nameFilter != null && !nameFilter.apply(current_node, name)) {
+                    //skip to the next sibling
+                    skipObject();
+                    return current_node;
+                }
+
                 getNextToken();
 
                 // A little weirdness here, brought on by Java's lack of a
@@ -422,6 +392,37 @@ public class CWordFile {
         }
 
         return current_node;
+    }
+
+    /**
+     * Skips unwanted identifier quickly
+     * Assuming that current position is right after identifier
+     */
+    private void skipObject() throws ParserException {
+        int braces = 0;
+        boolean canExit = true;
+        do {
+            getNextToken();
+            canExit = true;
+            switch (tokenType) {
+                case COMMENT:
+                case NEWLINE:
+                    //can't exit until get to the next sibling
+                    canExit = false;
+                    break;
+                case LBRACE:
+                    braces++;
+                    break;
+                case RBRACE:
+                    braces--;
+                    if (braces < 0) {
+                        throw new ParserException(filename + ": Unmatched right brace on line " +
+                                tokenizer.getLine() + ", column " +
+                                tokenizer.getColumn());
+                    }
+                    break;
+            }
+        } while (!canExit || braces > 0);
     }
 
     /**
@@ -628,5 +629,9 @@ public class CWordFile {
 
     public void setTryToRecover(boolean tryToRecover) {
         settings.setTryToRecover(tryToRecover);
+    }
+
+    public void setNameFilter(NameFilter nameFilter) {
+        this.nameFilter = nameFilter;
     }
 }
