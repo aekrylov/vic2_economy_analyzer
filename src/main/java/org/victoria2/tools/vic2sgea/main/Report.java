@@ -1,7 +1,6 @@
 package org.victoria2.tools.vic2sgea.main;
 
 import eug.parser.EUGFileIO;
-import eug.parser.NameFilter;
 import eug.shared.GenericObject;
 import eug.shared.ObjectVariable;
 
@@ -14,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class Report {
 
-    public long popCount;
+    public long popCount = 0;
     private String currentDate;
     private Country playerCountry;
     private String startDate;
@@ -66,9 +65,8 @@ public class Report {
      * @throws RuntimeException if runtime exception occurs
      */
     public Report(String savePath, String gamePath, String modPath, boolean filter) throws RuntimeException {
-        Country total = new Country(TOTAL_TAG);
-        total.population = 1;
-        countries.put(TOTAL_TAG, total);
+
+        SimpleLogger logger = new SimpleLogger();
 
         System.out.println("Loading products");
         //load all existing products
@@ -81,21 +79,14 @@ public class Report {
         productMap = products.stream()
                 .collect(Collectors.toMap(Product::getName, Function.identity()));
 
-
-        System.out.println("Nash: loading savegame... free memory is " + ReportHelpers.getFreeMemory());
+        logger.logMemoryUsage();
+        System.out.println("Nash: loading savegame...");
         GenericObject root = filter ? EUGFileIO.load(savePath, new GenericObjectConsumer()) : EUGFileIO.load(savePath);
 
-        /*loadGlobalProductInfo(root);
-
-        Vic2SaveGameCustom save = new Vic2SaveGameCustom(root);
-
-        System.out.println("Nash: processing savegame data... free memory is " + ReportHelpers.getFreeMemory());
-        loadCountries(save);
-        loadProvinces(save);*/
-        
         countTotals();
 
-        System.out.println("Nash: reading localizations...  free memory is " + ReportHelpers.getFreeMemory());
+        logger.logMemoryUsage();
+        System.out.println("Nash: reading localizations...");
         readLocalisations(gamePath);
         readLocalisations(modPath);
 
@@ -115,7 +106,6 @@ public class Report {
         currentDate = root.getString("date");
         playerCountry = countries.get(root.getString("player"));
         startDate = root.getString("start_date");
-
     }
 
     /**
@@ -177,7 +167,7 @@ public class Report {
 
         List<Country> countryList = new ArrayList<>(countries.values());
 
-        Country totalCountry = countries.get(TOTAL_TAG);
+        Country totalCountry = countries.computeIfAbsent(TOTAL_TAG, Country::new);
 
         for (Country country : countryList) {
             if (country.getTag().equals(TOTAL_TAG))
@@ -243,20 +233,9 @@ public class Report {
     }
 
     /**
-     * Loads countries, states and buildings
+     * Loads country market data and factories
+     * @param countryObject country object
      */
-    private void loadCountries(Vic2SaveGameCustom save) {
-
-
-        //------------------------------------
-        // country data loading
-        //------------------------------------
-
-        for (GenericObject countryObject : save.getCountries()) {
-            loadCountry(countryObject);
-        }
-    }
-
     private void loadCountry(GenericObject countryObject) {
         Country country = countries.computeIfAbsent(countryObject.name, Country::new);
 
@@ -301,14 +280,11 @@ public class Report {
         }
     }
 
-    private void loadProvinces(Vic2SaveGameCustom save) {
-        popCount = 0;
-
-        for (GenericObject province : save.provinces.values()) {
-            loadProvince(province);
-        }
-    }
-
+    /**
+     * Processes POPs and RGO in a given province
+     *
+     * @param province province object
+     */
     private void loadProvince(GenericObject province) {
         String ownerTag = province.getString("owner");
         if (ownerTag.isEmpty()) {
@@ -355,30 +331,6 @@ public class Report {
                 }
 
             }
-        }
-    }
-
-    static class UnwantedObjectFilter implements NameFilter {
-
-        private static final List<String> unwantedCommonTags = Arrays.asList(
-                "issues", "province_pop_id", "military_construction", "unit_names",
-                "leader", "army", "navy", "trade", "ai",
-                "rebel_faction", "previous_war", "news_collector");
-
-        //todo names duplicate
-        private static final List<String> countryTags = Arrays.asList("saved_country_supply",
-                "domestic_demand_pool", "actual_sold_domestic", "state");
-
-        //todo leave only the tags needed
-
-        private boolean isCountry(GenericObject object) {
-            return object.name.matches("[A-Z][A-Z0-9]{2}") && !object.isRoot() && object.getParent().isRoot();
-        }
-
-        @Override
-        public Boolean apply(GenericObject object, String s) {
-            boolean discard = unwantedCommonTags.contains(s) || isCountry(object) && !countryTags.contains(s);
-            return !discard;
         }
     }
 

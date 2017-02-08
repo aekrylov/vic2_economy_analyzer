@@ -20,10 +20,6 @@ public class ReportHelpers {
     public static final List<String> POPS_FACTORY = Arrays.asList("craftsmen", "clerks");
     public static final List<String> POPS_ARTISANS = Arrays.asList("artisans");
 
-    public static String getFreeMemory() {
-        return Wrapper.toKMG(Runtime.getRuntime().freeMemory());
-    }
-
     /**
      * Returns list localisation/*.csv file for given path
      * Half finished, will probably not be completed.
