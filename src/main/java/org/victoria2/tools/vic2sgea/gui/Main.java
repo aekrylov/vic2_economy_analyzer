@@ -25,6 +25,7 @@ public class Main extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader windowLoader = new FXMLLoader(getClass().getResource("/gui/Window.fxml"));
         Parent root = windowLoader.load();
+        root.getStylesheets().add("/gui/style.css");
         WindowController windowController = windowLoader.getController();
 
         Properties props = new Properties();
@@ -42,6 +43,7 @@ public class Main extends Application {
         try {
             FXMLLoader productListLoader = new FXMLLoader(getClass().getResource("/gui/ProductList.fxml"));
             root = productListLoader.load();
+            root.getStylesheets().add("/gui/style.css");
 
             windowController.setProductListController(productListLoader.getController());
 

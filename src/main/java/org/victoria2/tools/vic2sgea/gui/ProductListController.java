@@ -50,9 +50,6 @@ public class ProductListController extends BaseController implements Initializab
     TableColumn<Product, Float> colInflation;
     private Report report;
 
-    /*ProductListController(Report inReport){
-        report=inReport;
-    }*/
     @Override
     public void initialize(URL arg0, ResourceBundle arg1) {
 
@@ -60,19 +57,19 @@ public class ProductListController extends BaseController implements Initializab
         productsTable.setRowFactory(new TableRowDoubleClickFactory<>(product -> Main.showProduct(report, product)));
 
         setFactory(colName, Product::getName);
-        setFactory(colConsumption, Product::getConsumption);
-        setFactory(colRealSupply, Product::getSupply);
-        setFactory(colActualSupply, Product::getActualSupply);
+        setFactory(colConsumption, Product::getConsumption, new NiceFloatConverter());
+        setFactory(colRealSupply, Product::getSupply, new NiceFloatConverter());
+        setFactory(colActualSupply, Product::getActualSupply, new NiceFloatConverter());
         colActualSupply.setVisible(false);
-        setFactory(colAffordable, Product::getDemand);
-        setFactory(colMaxDemand, Product::getMaxDemand);
-        setFactory(colBasePrice, Product::getBasePrice);
-        setFactory(colMinPrice, Product::getMinPrice);
-        setFactory(colMaxPrice, Product::getMaxPrice);
-        setFactory(colPrice, Product::getPrice);
+        setFactory(colAffordable, Product::getDemand, new NiceFloatConverter());
+        setFactory(colMaxDemand, Product::getMaxDemand, new NiceFloatConverter());
+        setFactory(colBasePrice, Product::getBasePrice, new NiceFloatConverter());
+        setFactory(colMinPrice, Product::getMinPrice, new NiceFloatConverter());
+        setFactory(colMaxPrice, Product::getMaxPrice, new NiceFloatConverter());
+        setFactory(colPrice, Product::getPrice, new NiceFloatConverter());
         setFactory(colTrend, Product::getTrend);
-        setFactory(colOverproduced, Product::getOverproduced);
-        setFactory(colInflation, Product::getInflation);
+        setFactory(colOverproduced, Product::getOverproduced, new NiceFloatConverter());
+        setFactory(colInflation, Product::getInflation, new NiceFloatConverter());
     }
 
     public void setReport(Report report) {

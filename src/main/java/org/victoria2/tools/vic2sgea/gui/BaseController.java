@@ -20,6 +20,12 @@ public abstract class BaseController {
         column.setCellValueFactory(features -> new ReadOnlyObjectWrapper<>(getter.apply(features.getValue())));
     }
 
+    protected static <T, S> void setFactory(TableColumn<T, S> column, Function<? super T, S> getter,
+                                            StringConverter<S> converter) {
+        column.setCellValueFactory(features -> new ReadOnlyObjectWrapper<>(getter.apply(features.getValue())));
+        setCellFactory(column, converter);
+    }
+
     protected static <T, S> void setCellFactory(TableColumn<T, S> column, StringConverter<S> converter) {
         column.setCellFactory(TextFieldTableCell.forTableColumn(converter));
         //TextFieldTableCell creates editable cells

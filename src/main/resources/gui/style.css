@@ -1,0 +1,19 @@
+/* Original from http://edu.makery.ch/blog/2012/11/26/javafx-tutorial-addressapp-4/
+A lot of stuff here is just messing about. It may not actually do anything, but it's probably important.
+The previous values are still in this file in case some changes are needed.
+Tonis Kasekamp
+*/
+
+.flag {
+    -fx-border-width: 1px;
+    -fx-border-color: #000;
+}
+
+#productsTable .table-column {
+    -fx-text-alignment: right;
+    -fx-alignment: center-right;
+}
+
+#productsTable #colName {
+    -fx-alignment: center-left;
+}
