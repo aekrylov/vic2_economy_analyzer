@@ -236,6 +236,15 @@ public class CWordFile {
         return root;
     }
 
+    /**
+     * Loads Loads a {@link GenericObject} tree from the given filename.
+     * If childrenConsumer is not null, all children objects of root are passed to the consumer and not added to the tree,
+     * thus leaving only the root object and its variables and drastically reducing memory usage
+     *
+     * @param filename         name of the savegame file
+     * @param childrenConsumer consumer called on every root's child fully read
+     * @return if consumer is null, returns full object tree. Otherwise, returns root object with variables
+     */
     public GenericObject load(final String filename, Consumer<GenericObject> childrenConsumer) {
         final long startTime = System.nanoTime();
 
@@ -282,6 +291,7 @@ public class CWordFile {
 
     /**
      * Reads an object from the current stream.
+     * if {@link #nameFilter} is not null, this method calls nameFilter on every {@link TokenType#IDENT} read
      *
      * @param current_node the node to read into, which cannot be <code>null</code>.
      * @return the next node to read into, which can be either the parameter,

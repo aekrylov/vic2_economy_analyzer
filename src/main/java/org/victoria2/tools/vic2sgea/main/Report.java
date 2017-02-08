@@ -83,15 +83,16 @@ public class Report {
 
 
         System.out.println("Nash: loading savegame... free memory is " + ReportHelpers.getFreeMemory());
-        GenericObject root = filter ? EUGFileIO.load(savePath, new UnwantedObjectFilter()) : EUGFileIO.load(savePath);
+        GenericObject root = filter ? EUGFileIO.load(savePath, new GenericObjectConsumer()) : EUGFileIO.load(savePath);
 
-        loadGlobalProductInfo(root);
+        /*loadGlobalProductInfo(root);
 
         Vic2SaveGameCustom save = new Vic2SaveGameCustom(root);
 
         System.out.println("Nash: processing savegame data... free memory is " + ReportHelpers.getFreeMemory());
         loadCountries(save);
-        loadPops(save);
+        loadProvinces(save);*/
+        
         countTotals();
 
         System.out.println("Nash: reading localizations...  free memory is " + ReportHelpers.getFreeMemory());
@@ -257,7 +258,7 @@ public class Report {
     }
 
     private void loadCountry(GenericObject countryObject) {
-        Country country = new Country(countryObject.name);
+        Country country = countries.computeIfAbsent(countryObject.name, Country::new);
 
         Map<String, BiConsumer<ProductStorage, Float>> fieldsMap = new HashMap<>();
         fieldsMap.put("saved_country_supply", ProductStorage::setTotalSupply);
@@ -298,11 +299,9 @@ public class Report {
             }
 
         }
-
-        countries.put(country.getTag(), country);
     }
 
-    private void loadPops(Vic2SaveGameCustom save) {
+    private void loadProvinces(Vic2SaveGameCustom save) {
         popCount = 0;
 
         for (GenericObject province : save.provinces.values()) {
