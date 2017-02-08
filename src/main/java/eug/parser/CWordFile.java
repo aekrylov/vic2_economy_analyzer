@@ -5,8 +5,7 @@ import eug.shared.GenericObject;
 
 import javax.swing.*;
 import java.io.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
+import java.util.function.BiConsumer;
 
 /**
  * This class handles the parsing of .eug files. For most uses, you will want to
@@ -52,7 +51,8 @@ public class CWordFile {
     // used during loading
     private int newlinesSinceComment = 0;
 
-    private NameFilter nameFilter;
+    private PreloadFilter preloadFilter;
+    private PostloadFilter postloadFilter;
 
     /**
      * Creates a new instance of CWordFile.
@@ -89,6 +89,10 @@ public class CWordFile {
                     Math.min(65536, (int) inFile.length()))); // safeguard for very large files
             tokenizer.setCommentsIgnored(settings.isIgnoreComments());
             tokenizer.setFileName(filename);
+            //notify about loading
+            if (settings.isPrintTimingInfo())
+                System.out.println("Loading " + filename + ".");
+
             return true;
         } catch (FileNotFoundException ex) {
             return false;
@@ -102,6 +106,9 @@ public class CWordFile {
      * @param string a string in the .eug format.
      */
     private void openStringStream(String string) {
+        //notify about loading
+        assert debug("Loading from string.", 2);
+
         tokenizer = new EUGScanner(new StringReader(string));
         tokenizer.setFileName("(string)");
         this.filename = "(reading from string)";
@@ -127,50 +134,23 @@ public class CWordFile {
     }
 
     /**
-     * Loads a {@link GenericObject} tree from the given string.
+     * Loads a {@link GenericObject} tree from the given string, applying preload and postload filters.
      *
      * @param string a string containing an EUG tree.
      * @return the <code>GenericObject</code> tree loaded from the string, or
      * <code>null</code> if there was an error during loading.
      */
     public GenericObject loadFromString(String string) {
-        final long startTime = System.nanoTime();
-
-        //notify about loading
-        assert debug("Loading from string.", 2);
-
         openStringStream(string);
 
-        GenericObject root = null;
-
-        try {
-            root = new GenericObject();
-
-            GenericObject curr = readObject(root);
-
-            while (tokenType != TokenType.EOF) {
-                curr = readObject(curr);
-            }
-        } catch (ParserException ex) {
-            if (!settings.isTryToRecover())
-                root = null;
-        } finally {
-            closeInStream();
-        }
-
-        if (numErrors > 0)
-            System.out.println("There were " + numErrors + " errors during loading.");
-
-        if (settings.isPrintTimingInfo())
-            System.out.println("Loading took " + (System.nanoTime() - startTime) + " ns.\n");
-
-        assert debug("The node read was:\n" + root, 6);
-
-        return root;
+        if (postloadFilter != null)
+            return load(CWordFile::readingLoopPostloadFilter);
+        else
+            return load(CWordFile::readingLoop);
     }
 
     /**
-     * Loads a {@link GenericObject} tree from the given filename.
+     * Loads a {@link GenericObject} tree from the given filename, applying preload and postload filters.
      *
      * @param filename the name of the file containing an EUG tree (e.g., a savegame
      *                 or an event file).
@@ -178,99 +158,39 @@ public class CWordFile {
      * <code>null</code> if there was an error during loading.
      */
     public GenericObject load(final String filename) {
-        return load(filename, (Function<GenericObject, Boolean>) null);
-    }
-
-    /**
-     * Loads a {@link GenericObject} tree from the given filename with a given object filter.
-     *
-     * @param filename     the name of the file containing an EUG tree (e.g., a savegame
-     *                     or an event file).
-     * @param objectFilter function that returns if the object just read should be kept in structure.
-     *                     This function is called every time an object is read
-     * @return the <code>GenericObject</code> tree loaded from the file, or
-     * <code>null</code> if there was an error during loading.
-     */
-    public GenericObject load(final String filename, Function<GenericObject, Boolean> objectFilter) {
-        final long startTime = System.nanoTime();
-
         if (!openInStream(filename))
             return null;
 
-        //notify about loading
-        if (settings.isPrintTimingInfo())
-            System.out.println("Loading " + filename + ".");
-
-        GenericObject root = null;
-
-        try {
-            root = new GenericObject();
-            GenericObject curr = root;
-
-            //reading loop (per line mainly)
-            do {
-                GenericObject next = readObject(curr);
-                if (objectFilter != null && next == curr.getParent()) { //finished reading curr
-                    if (!objectFilter.apply(curr)) {
-                        next.removeChild(curr);
-                    }
-                }
-                curr = next;
-
-            } while (tokenType != TokenType.EOF);
-        } catch (ParserException ex) {
-            System.err.println(ex.getMessage());
-            if (!settings.isTryToRecover())
-                root = null;
-        } finally {
-            closeInStream();
-        }
-
-        //Tell some things about the current state:
-        if (numErrors > 0)
-            System.out.println("There were " + numErrors + " errors during loading.");
-//        System.out.println("Read " + tokenizer.getCharsRead() + " bytes.");
-        if (settings.isPrintTimingInfo())
-            System.out.println("Loading took " + (System.nanoTime() - startTime) + " ns.\n");
-
-        return root;
+        if (postloadFilter != null)
+            return load(CWordFile::readingLoopPostloadFilter);
+        else
+            return load(CWordFile::readingLoop);
     }
 
     /**
-     * Loads Loads a {@link GenericObject} tree from the given filename.
-     * If childrenConsumer is not null, all children objects of root are passed to the consumer and not added to the tree,
+     * Loads a {@link GenericObject} tree from the given filename.
+     * All children objects of root are passed to the consumer and not added to the tree,
      * thus leaving only the root object and its variables and drastically reducing memory usage
      *
      * @param filename         name of the savegame file
-     * @param childrenConsumer consumer called on every root's child fully read
-     * @return if consumer is null, returns full object tree. Otherwise, returns root object with variables
+     * @param childrenConsumer consumer called on every root's child fully read. Must not be null
+     * @return returns root object with variables
      */
-    public GenericObject load(final String filename, Consumer<GenericObject> childrenConsumer) {
-        final long startTime = System.nanoTime();
-
+    public GenericObject load(final String filename, ChildrenConsumer childrenConsumer) {
         if (!openInStream(filename))
             return null;
 
-        //notify about loading
-        if (settings.isPrintTimingInfo())
-            System.out.println("Loading " + filename + ".");
+        return load((self, root) -> self.readingLoopChildrenConsumer(root, childrenConsumer));
+    }
+
+    private GenericObject load(BiConsumer<CWordFile, GenericObject> readingLoop) {
+        final long startTime = System.nanoTime();
 
         GenericObject root = null;
 
         try {
             root = new GenericObject();
-            GenericObject curr = root;
-
-            //reading loop (per line mainly)
-            do {
-                GenericObject next = readObject(curr);
-                if (childrenConsumer != null && next == curr.getParent() && next.isRoot()) { //finished reading curr
-                    childrenConsumer.accept(curr);
-                    next.removeChild(curr);
-                }
-                curr = next;
-
-            } while (tokenType != TokenType.EOF);
+            readingLoop.accept(this, root);
         } catch (ParserException ex) {
             System.err.println(ex.getMessage());
             if (!settings.isTryToRecover())
@@ -287,11 +207,50 @@ public class CWordFile {
             System.out.println("Loading took " + (System.nanoTime() - startTime) + " ns.\n");
 
         return root;
+    }
+
+    private void readingLoop(GenericObject root) throws ParserException {
+        GenericObject curr = root;
+
+        //reading loop (per line mainly)
+        do {
+            curr = readObject(curr);
+        } while (tokenType != TokenType.EOF);
+    }
+
+    private void readingLoopPostloadFilter(GenericObject root) throws ParserException {
+        GenericObject curr = root;
+
+        //reading loop (per line mainly)
+        do {
+            GenericObject next = readObject(curr);
+            if (next == curr.getParent()) { //finished reading curr
+                if (!postloadFilter.apply(curr)) {
+                    next.removeChild(curr);
+                }
+            }
+            curr = next;
+        } while (tokenType != TokenType.EOF);
+    }
+
+    private void readingLoopChildrenConsumer(GenericObject root, ChildrenConsumer consumer) throws ParserException {
+        GenericObject curr = root;
+
+        //reading loop (per line mainly)
+        do {
+            GenericObject next = readObject(curr);
+            if (consumer != null && next == curr.getParent() && next.isRoot()) { //finished reading curr
+                consumer.accept(curr);
+                next.removeChild(curr);
+            }
+            curr = next;
+
+        } while (tokenType != TokenType.EOF);
     }
 
     /**
      * Reads an object from the current stream.
-     * if {@link #nameFilter} is not null, this method calls nameFilter on every {@link TokenType#IDENT} read
+     * if {@link #preloadFilter} is not null, this method calls preloadFilter on every {@link TokenType#IDENT} read
      *
      * @param current_node the node to read into, which cannot be <code>null</code>.
      * @return the next node to read into, which can be either the parameter,
@@ -310,7 +269,7 @@ public class CWordFile {
         switch (tokenType) {
             case IDENT:
                 final String name = token;
-                if (nameFilter != null && !nameFilter.apply(current_node, name)) {
+                if (preloadFilter != null && !preloadFilter.apply(current_node, name)) {
                     //skip to the next sibling
                     skipObject();
                     return current_node;
@@ -686,7 +645,11 @@ public class CWordFile {
         settings.setTryToRecover(tryToRecover);
     }
 
-    public void setNameFilter(NameFilter nameFilter) {
-        this.nameFilter = nameFilter;
+    public void setPreloadFilter(PreloadFilter preloadFilter) {
+        this.preloadFilter = preloadFilter;
+    }
+
+    public void setPostloadFilter(PostloadFilter postloadFilter) {
+        this.postloadFilter = postloadFilter;
     }
 }

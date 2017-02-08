@@ -1,13 +1,13 @@
 package org.victoria2.tools.vic2sgea.main;
 
-import eug.parser.EUGFileIO;
+import eug.parser.CWordFile;
+import eug.parser.ChildrenConsumer;
 import eug.shared.GenericObject;
 import eug.shared.ObjectVariable;
 
 import java.io.*;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -81,7 +81,8 @@ public class Report {
 
         logger.logMemoryUsage();
         System.out.println("Nash: loading savegame...");
-        GenericObject root = filter ? EUGFileIO.load(savePath, new GenericObjectConsumer()) : EUGFileIO.load(savePath);
+        CWordFile loader = new CWordFile();
+        GenericObject root = filter ? loader.load(savePath, new GenericObjectConsumer()) : loader.load(savePath);
 
         countTotals();
 
@@ -337,7 +338,7 @@ public class Report {
     /**
      * Consumer for root's children
      */
-    class GenericObjectConsumer implements Consumer<GenericObject> {
+    class GenericObjectConsumer implements ChildrenConsumer {
 
         @Override
         public void accept(GenericObject object) {

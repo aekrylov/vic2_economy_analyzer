@@ -10,5 +10,5 @@ import java.util.function.BiFunction;
  * <p>
  * BiFunction that consumes parent object and name read from tokenizer and decides whether that object must be read or not
  */
-public interface NameFilter extends BiFunction<GenericObject, String, Boolean> {
+public interface PreloadFilter extends BiFunction<GenericObject, String, Boolean> {
 }
