@@ -6,31 +6,29 @@ public class ProductStorage extends EconomySubject {
     }
 
     public final Product product;
-    /**
-     * It is real production for that good in country, without unsold goods, in pieces. Used as GDP
-     */
-    public float actualSoldDomestic;
+
+    private float soldDomestic;
     /**
      * Thats for that good in country, in pieces
      */
-    public float maxDemand;
+    private float maxDemand;
 
     public void add(ProductStorage that) {
         super.add(that);
         maxDemand += that.maxDemand;
-        actualSoldDomestic += that.actualSoldDomestic;
+        soldDomestic += that.soldDomestic;
     }
 
     public float getPrice() {
         return product.getPrice();
     }
 
-    public float getActualSoldDomestic() {
-        return actualSoldDomestic;
+    public float getSoldDomestic() {
+        return soldDomestic;
     }
 
     public double getActualSupplyPounds() {
-        return actualSupply * product.price;
+        return sold * product.price;
     }
 
     public double getExportedPounds() {
@@ -42,7 +40,7 @@ public class ProductStorage extends EconomySubject {
     }
 
     public double getActualDemandPounds() {
-        return actualDemand * product.price;
+        return bought * product.price;
     }
 
     public double getTotalSupplyPounds() {
@@ -55,20 +53,20 @@ public class ProductStorage extends EconomySubject {
 
     public void innerCalculations() {
         // calculating actual supply
-        float thrownToMarket = (totalSupply - actualSoldDomestic);
+        float thrownToMarket = (totalSupply - soldDomestic);
         if (thrownToMarket <= 0)
-            actualSupply = totalSupply;
+            sold = totalSupply;
         else {
             if (product.name.equalsIgnoreCase("precious_metal"))
-                actualSupply = totalSupply;
+                sold = totalSupply;
             else if (product.worldmarketPool > 0)
                 //todo assuming here that for every country, percentage of goods sold on the world market is the same
-                actualSupply = actualSoldDomestic + thrownToMarket * product.actualSoldWorld / product.worldmarketPool;
+                sold = soldDomestic + thrownToMarket * product.actualSoldWorld / product.worldmarketPool;
             else
-                actualSupply = actualSoldDomestic;
+                sold = soldDomestic;
         }
 
-        gdp += actualSupply;
+        gdp += sold;
 
         //if gdp is positive, it means that less goods were consumed than produced.
         // Since producers consume domestic goods first, no need to change gdp
@@ -77,20 +75,20 @@ public class ProductStorage extends EconomySubject {
         gdp = Math.max(gdp, 0);
 
         //calculating import (without wasted)
-        imported = Math.max(actualDemand - actualSupply, 0);
+        imported = Math.max(bought - sold, 0);
 
         //calculating exported
         if (!product.name.equalsIgnoreCase("precious_metal")) {
-            exported = Math.max(actualSupply - actualDemand, 0);//???!!!!
+            exported = Math.max(sold - bought, 0);//???!!!!
             //exported = 0 + thrownToMarket * product.actualSoldWorld / product.worldmarketPool;
         }
 
-        product.actualSupply += actualSupply;
+        product.actualSupply += sold;
 
     }
 
-    public void setActualSoldDomestic(float actualSoldDomestic) {
-        this.actualSoldDomestic = actualSoldDomestic;
+    public void setSoldDomestic(float soldDomestic) {
+        this.soldDomestic = soldDomestic;
     }
 
     public void setMaxDemand(float maxDemand) {

@@ -49,7 +49,7 @@ public class ProductController extends ChartsController {
         super(report);
         this.product = product;
         addUniChart(ProductStorage::getGdp, "GDP of");
-        addUniChart(ProductStorage::getActualDemand, "Consumers of ");
+        addUniChart(ProductStorage::getBought, "Consumers of ");
         addUniChart(ProductStorage::getExported, "Exporters of ");
         addUniChart(ProductStorage::getImported, "Importers of ");
         //addUniChart("maxDemand",2,0, "maxDemand ");
@@ -58,7 +58,7 @@ public class ProductController extends ChartsController {
         addUniChart("actualSoldWorld", 1, 4, "actualSoldWorld ");
 */
         addUniChart(ProductStorage::getTotalSupply, "Total Supply of ");
-        addUniChart(ProductStorage::getActualSupply, "Actual Supply of ");
+        addUniChart(ProductStorage::getSold, "Actual Supply of ");
 
     }
 }

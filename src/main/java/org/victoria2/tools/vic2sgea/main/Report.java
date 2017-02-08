@@ -19,6 +19,7 @@ public class Report {
     private String startDate;
 
     public static final String TOTAL_TAG = "TOT";
+    public static final String TOTAL_PRODUCT = "total_pounds";
 
     // name -> product
     private Map<String, Product> productMap = new HashMap<>();
@@ -196,6 +197,25 @@ public class Report {
             country.GDPPlace = calc;
             calc++;
         }
+
+        Product total = new Product(TOTAL_PRODUCT);
+        float totalItems = 0;
+        for (Product product : productMap.values()) {
+            float volume = product.getConsumption();
+            total.supply += product.getSupply() * product.price;
+            total.consumption += product.getConsumption() * product.price;
+            total.demand += product.getDemand() * product.price;
+            total.maxDemand += product.getMaxDemand() * product.price;
+            total.actualSupply += product.getActualSupply() * product.price;
+
+            total.basePrice += product.getBasePrice() * volume;
+            total.price += product.getPrice() * volume;
+
+            totalItems += volume;
+        }
+        total.basePrice /= totalItems;
+        total.price /= totalItems;
+        productMap.put(TOTAL_PRODUCT, total);
     }
 
     /**
@@ -244,8 +264,8 @@ public class Report {
         fieldsMap.put("saved_country_supply", ProductStorage::setTotalSupply);
         fieldsMap.put("domestic_demand_pool", ProductStorage::setMaxDemand);
         fieldsMap.put("actual_sold_domestic", (productStorage, value) -> {
-            productStorage.setActualSoldDomestic(value);
-            productStorage.setActualDemand(value);
+            productStorage.setSoldDomestic(value);
+            productStorage.setBought(value);
         });
 
         for (Map.Entry<String, BiConsumer<ProductStorage, Float>> entry : fieldsMap.entrySet()) {
@@ -299,8 +319,6 @@ public class Report {
             if (object.contains("size")) {
                 popCount++;
                 int popSize = object.getInt("size");
-                //todo why x4
-
                 owner.population += popSize * 4;
 
                 if (ReportHelpers.POPS_RGO.contains(object.name)) {

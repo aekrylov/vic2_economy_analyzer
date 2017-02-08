@@ -34,13 +34,9 @@ public class Country extends EconomySubject implements Comparable<Country> {
     public long workforceRGO;
     private Map<String, ProductStorage> storageMap = new HashMap<>();
     private String officialName = "";
-    /**
-     * Summ for country in pounds
-     */
+
     private float GDPPart;
-    /**
-     * Summ for country
-     */
+
     int GDPPlace;
     /**
      * Summ for country in pounds
@@ -48,11 +44,6 @@ public class Country extends EconomySubject implements Comparable<Country> {
     float goldIncome;
     ArrayList<Province> provinces = new ArrayList<>();
     private String tag;
-
-    /**
-     * (Actual supply) - (producers stockpile)
-     */
-    private float actualSupplyWithDeductions;
 
     private Map<Product, Float> intermediate = new HashMap<>();
 
@@ -142,8 +133,12 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return (workforceFactory - employmentFactory) * 4 / (float) population * 100;
     }
 
-    public long getWorkforce() {
+    public long getWorkforceRgo() {
         return workforceRGO;
+    }
+
+    public long getWorkforceFactory() {
+        return workforceFactory;
     }
 
 
@@ -168,14 +163,13 @@ public class Country extends EconomySubject implements Comparable<Country> {
      */
     private void clearCalculated() {
         totalSupply = 0;
-        actualSupply = 0;
-        actualDemand = 0;
+        sold = 0;
+        bought = 0;
         imported = 0;
         exported = 0;
 
         gdp = 0;
 
-        actualSupplyWithDeductions = 0;
     }
 
     /**
@@ -188,14 +182,11 @@ public class Country extends EconomySubject implements Comparable<Country> {
             productStorage.innerCalculations();
 
             totalSupply += productStorage.getTotalSupplyPounds();
-            actualSupply += productStorage.getActualSupplyPounds();
-            actualDemand += productStorage.getActualDemandPounds();
+            sold += productStorage.getActualSupplyPounds();
+            bought += productStorage.getActualDemandPounds();
             imported += productStorage.getImportedPounds();
             exported += productStorage.getExportedPounds();
             gdp += productStorage.getGdpPounds();
-
-            actualSupplyWithDeductions += (productStorage.getActualSupply() - getIntermediate(productStorage.product))
-                    * productStorage.getPrice();
 
         }
 
@@ -210,7 +201,4 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return storageMap;
     }
 
-    public float getActualSupplyWithDeductions() {
-        return actualSupplyWithDeductions;
-    }
 }

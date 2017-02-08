@@ -50,12 +50,12 @@ public class CountryController extends ChartsController {
         this.storageMap = country.getStorage();
 
         addUniChart(EconomySubject::getGdp, "GDP");
-        addUniChart(EconomySubject::getActualDemand, "Consumption");
+        addUniChart(EconomySubject::getBought, "Consumption");
         addUniChart(EconomySubject::getExported, "Export");
         addUniChart(EconomySubject::getImported, "Import");
         //addUniChart(report, country, "maxDemand",2,0, "maxDemand");
         addUniChart(EconomySubject::getTotalSupply, "Total Supply");
-        addUniChart(EconomySubject::getActualSupply, "Actual supply");
+        addUniChart(EconomySubject::getSold, "Actual supply");
     }
 }
 

@@ -28,7 +28,5 @@ public abstract class BaseController {
 
     protected static <T, S> void setCellFactory(TableColumn<T, S> column, StringConverter<S> converter) {
         column.setCellFactory(TextFieldTableCell.forTableColumn(converter));
-        //TextFieldTableCell creates editable cells
-        column.setEditable(false);
     }
 }

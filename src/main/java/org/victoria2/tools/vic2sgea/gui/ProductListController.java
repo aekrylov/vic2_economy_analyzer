@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.ToggleButton;
 import org.victoria2.tools.vic2sgea.main.Product;
 import org.victoria2.tools.vic2sgea.main.Report;
 import org.victoria2.tools.vic2sgea.main.TableRowDoubleClickFactory;
@@ -14,14 +15,21 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 /**
  * @author nashetovich
  */
 public class ProductListController extends BaseController implements Initializable {
     @FXML
+    ToggleButton btnHideZeros;
+    @FXML
     TableView<Product> productsTable;
     private static final ObservableList<Product> productsTableItems = FXCollections.observableArrayList();
+
+    private Collection<Product> products;
+    private Collection<Product> productsFiltered;
+
     @FXML
     TableColumn<Product, String> colName;
     @FXML
@@ -56,6 +64,11 @@ public class ProductListController extends BaseController implements Initializab
         //add double click listener
         productsTable.setRowFactory(new TableRowDoubleClickFactory<>(product -> Main.showProduct(report, product)));
 
+        btnHideZeros.setOnMouseClicked(e -> {
+            boolean selected = btnHideZeros.isSelected();
+            fillTable(selected ? productsFiltered : products);
+        });
+
         setFactory(colName, Product::getName);
         setFactory(colConsumption, Product::getConsumption, new NiceFloatConverter());
         setFactory(colRealSupply, Product::getSupply, new NiceFloatConverter());
@@ -74,29 +87,16 @@ public class ProductListController extends BaseController implements Initializab
 
     public void setReport(Report report) {
         this.report = report;
+        this.products = report.getProductList();
+        this.productsFiltered = products.stream()
+                .filter(product -> product.getActualSupply() > 0)
+                .collect(Collectors.toList());
     }
 
     public void fillTable(Collection<Product> products) {
         productsTableItems.clear();
 
-        //todo is it necessary?
-        Product total = new Product("Total (pounds)");
-        for (Product product : products) {
-            total.supply += product.getSupply() * product.price;
-            total.consumption += product.getConsumption() * product.price;
-            total.demand += product.getDemand() * product.price;
-            total.maxDemand += product.getMaxDemand() * product.price;
-            total.basePrice += product.getBasePrice();
-            total.price += product.getPrice();
-            total.actualSupply += product.getActualSupply() * product.price;
-
-        }
-        total.basePrice = total.basePrice / products.size();
-        total.price = total.price / products.size();
-
         productsTableItems.addAll(products);
-
-        productsTableItems.add(total);
         productsTableItems.sort(Comparator.comparing(Product::getName));
 
         productsTable.setItems(productsTableItems);

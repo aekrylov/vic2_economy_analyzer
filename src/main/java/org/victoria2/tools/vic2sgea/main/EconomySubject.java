@@ -14,9 +14,9 @@ public abstract class EconomySubject {
     /**
      * It is real production for that good in country, without unsold goods, in pieces. Used as GDP
      */
-    float actualSupply;
+    float sold;
 
-    float actualDemand;
+    float bought;
 
     /**
      * It is total supply for that good in country (including unsold), in pieces
@@ -41,8 +41,8 @@ public abstract class EconomySubject {
             throw new RuntimeException("Incompatible classes");
         }
         totalSupply += that.totalSupply;
-        actualSupply += that.actualSupply;
-        actualDemand += that.actualDemand;
+        sold += that.sold;
+        bought += that.bought;
 
         exported += that.exported;
         imported += that.imported;
@@ -56,16 +56,16 @@ public abstract class EconomySubject {
      */
     public abstract void innerCalculations();
 
-    public float getActualSupply() {
-        return actualSupply;
+    public float getSold() {
+        return sold;
     }
 
     public float getTotalSupply() {
         return totalSupply;
     }
 
-    public float getActualDemand() {
-        return actualDemand;
+    public float getBought() {
+        return bought;
     }
 
     public float getExported() {
@@ -84,12 +84,12 @@ public abstract class EconomySubject {
         this.imported = imported;
     }
 
-    public void setActualSupply(float actualSupply) {
-        this.actualSupply = actualSupply;
+    public void setSold(float sold) {
+        this.sold = sold;
     }
 
-    public void setActualDemand(float actualDemand) {
-        this.actualDemand = actualDemand;
+    public void setBought(float bought) {
+        this.bought = bought;
     }
 
     public void setTotalSupply(float totalSupply) {

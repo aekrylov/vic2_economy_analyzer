@@ -76,8 +76,6 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     TableColumn<Country, Float> colGdp;
     @FXML
-    TableColumn<Country, Float> colActualSupplyWithDeductions;
-    @FXML
     TableColumn<Country, Float> colGDPPer;
     @FXML
     TableColumn<Country, Integer> colGDPPlace;
@@ -86,7 +84,9 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     TableColumn<Country, Long> colGoldIncome;
     @FXML
-    TableColumn<Country, Long> colWorkforce;
+    TableColumn<Country, Long> colWorkForceRgo;
+    @FXML
+    TableColumn<Country, Long> colWorkForceFactory;
     @FXML
     TableColumn<Country, Long> colEmployment;
     @FXML
@@ -130,16 +130,16 @@ public class WindowController extends BaseController implements Initializable {
 
         setFactory(colCountry, Country::getOfficialName);
         setFactory(colPopulation, Country::getPopulation);
-        setFactory(colActualSupply, Country::getActualSupply);
+        setFactory(colActualSupply, Country::getSold);
         setFactory(colGdp, Country::getGdp);
-        setFactory(colActualSupplyWithDeductions, Country::getActualSupplyWithDeductions);
-        setFactory(colConsumption, Country::getActualDemand);
+        setFactory(colConsumption, Country::getBought);
         setFactory(colGDPPer, Country::getGdpPerCapita);
         setFactory(colGDPPlace, Country::getGDPPlace);
         setFactory(colGDPPart, Country::getGDPPart);
         setFactory(colGoldIncome, Country::getGoldIncome);
 
-        setFactory(colWorkforce, Country::getWorkforce);
+        setFactory(colWorkForceRgo, Country::getWorkforceRgo);
+        setFactory(colWorkForceFactory, Country::getWorkforceFactory);
         setFactory(colEmployment, Country::getEmployment);
 
         setFactory(colExport, Country::getExported);
@@ -153,18 +153,19 @@ public class WindowController extends BaseController implements Initializable {
         setCellFactory(colGdp, new KmgConverter<>());
         setCellFactory(colGDPPart, new PercentageConverter());
         setCellFactory(colGDPPer, new NiceFloatConverter());
-        setCellFactory(colActualSupplyWithDeductions, new KmgConverter<>());
-        setCellFactory(colWorkforce, new KmgConverter<>());
+        setCellFactory(colWorkForceRgo, new KmgConverter<>());
+        setCellFactory(colWorkForceFactory, new KmgConverter<>());
         setCellFactory(colEmployment, new KmgConverter<>());
         setCellFactory(colUnemploymentRate, new PercentageConverter());
         setCellFactory(colUnemploymentRateFactory, new PercentageConverter());
 
         colConsumption.setVisible(false);
-        colWorkforce.setVisible(false);
+        colActualSupply.setVisible(false);
+        colWorkForceRgo.setVisible(false);
+        colWorkForceFactory.setVisible(false);
         colEmployment.setVisible(false);
         colExport.setVisible(false);
         colImport.setVisible(false);
-        colActualSupplyWithDeductions.setVisible(false);
 
         /*try {
             Config config = new Config();
