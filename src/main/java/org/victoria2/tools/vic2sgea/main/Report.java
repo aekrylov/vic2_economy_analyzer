@@ -8,6 +8,7 @@ import eug.shared.ObjectVariable;
 import java.io.*;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -251,101 +252,109 @@ public class Report {
         //------------------------------------
 
         for (GenericObject countryObject : save.getCountries()) {
-            Country country = new Country(countryObject.name);
-
-            Map<String, BiConsumer<ProductStorage, Float>> fieldsMap = new HashMap<>();
-            fieldsMap.put("saved_country_supply", ProductStorage::setTotalSupply);
-            fieldsMap.put("domestic_demand_pool", ProductStorage::setMaxDemand);
-            fieldsMap.put("actual_sold_domestic", (productStorage, value) -> {
-                productStorage.setActualSoldDomestic(value);
-                productStorage.setActualDemand(value);
-            });
-
-            for (Map.Entry<String, BiConsumer<ProductStorage, Float>> entry : fieldsMap.entrySet()) {
-                GenericObject object = countryObject.getChild(entry.getKey());
-                for (ObjectVariable productVar : object.values) {
-                    Product product = findProduct(productVar.getName());
-                    ProductStorage storage = country.findStorage(product);
-
-                    entry.getValue().accept(storage, Float.valueOf(productVar.getValue()));
-
-                }
-            }
-
-            //count factory workers
-            for (GenericObject stateObject : save.getStates(countryObject)) {
-
-                for (GenericObject building : stateObject.getChildren("state_buildings")) {
-
-                    //if it has employment, it is a factory
-                    GenericObject employment = building.getChild("employment");
-                    if (employment != null) {
-                        GenericObject stockpile = building.getChild("stockpile");
-
-                        //assuming that factory stockpile is close to its consumption the previous day
-                        for (ObjectVariable good : stockpile.values) {
-                            country.addIntermediate(findProduct(good.getName()), Float.parseFloat(good.getValue()));
-                        }
-
-                        country.employmentFactory += ReportHelpers.getEmployeeCount(building);
-                    }
-                }
-
-            }
-
-            countries.put(country.getTag(), country);
+            loadCountry(countryObject);
         }
+    }
+
+    private void loadCountry(GenericObject countryObject) {
+        Country country = new Country(countryObject.name);
+
+        Map<String, BiConsumer<ProductStorage, Float>> fieldsMap = new HashMap<>();
+        fieldsMap.put("saved_country_supply", ProductStorage::setTotalSupply);
+        fieldsMap.put("domestic_demand_pool", ProductStorage::setMaxDemand);
+        fieldsMap.put("actual_sold_domestic", (productStorage, value) -> {
+            productStorage.setActualSoldDomestic(value);
+            productStorage.setActualDemand(value);
+        });
+
+        for (Map.Entry<String, BiConsumer<ProductStorage, Float>> entry : fieldsMap.entrySet()) {
+            GenericObject object = countryObject.getChild(entry.getKey());
+            for (ObjectVariable productVar : object.values) {
+                Product product = findProduct(productVar.getName());
+                ProductStorage storage = country.findStorage(product);
+
+                entry.getValue().accept(storage, Float.valueOf(productVar.getValue()));
+
+            }
+        }
+
+        //count factory workers
+        for (GenericObject stateObject : countryObject.getChildren("state")) {
+
+            for (GenericObject building : stateObject.getChildren("state_buildings")) {
+
+                //if it has employment, it is a factory
+                GenericObject employment = building.getChild("employment");
+                if (employment != null) {
+                    GenericObject stockpile = building.getChild("stockpile");
+
+                    //assuming that factory stockpile is close to its consumption the previous day
+                    for (ObjectVariable good : stockpile.values) {
+                        country.addIntermediate(findProduct(good.getName()), Float.parseFloat(good.getValue()));
+                    }
+
+                    country.employmentFactory += ReportHelpers.getEmployeeCount(building);
+                }
+            }
+
+        }
+
+        countries.put(country.getTag(), country);
     }
 
     private void loadPops(Vic2SaveGameCustom save) {
         popCount = 0;
 
         for (GenericObject province : save.provinces.values()) {
-            String ownerTag = province.getString("owner");
-            if (ownerTag.isEmpty()) {
-                ownerTag = TOTAL_TAG;
-            }
+            loadProvince(province);
+        }
+    }
 
-            Country owner = countries.get(ownerTag);
-            for (GenericObject object : province.children) {
+    private void loadProvince(GenericObject province) {
+        String ownerTag = province.getString("owner");
+        if (ownerTag.isEmpty()) {
+            ownerTag = TOTAL_TAG;
+        }
 
-                // population calculation {
-                if (object.contains("size")) {
-                    popCount++;
-                    int popSize = object.getInt("size");
-                    //todo why x4
+        Country owner = countries.computeIfAbsent(ownerTag, Country::new);
+        for (GenericObject object : province.children) {
 
-                    owner.population += popSize * 4;
+            // population calculation {
+            if (object.contains("size")) {
+                popCount++;
+                int popSize = object.getInt("size");
+                //todo why x4
 
-                    if (object.name.equalsIgnoreCase("farmers") || object.name.equalsIgnoreCase("labourers") || object.name.equalsIgnoreCase("slaves")) {
-                        owner.workforceRGO += popSize;
-                    } else if (object.name.equalsIgnoreCase("clerks") || object.name.equalsIgnoreCase("craftsmen")) {
-                        owner.workforceFactory += popSize;
-                    } else if (object.name.equalsIgnoreCase("artisans") && object.containsValue("production_type")) {
+                owner.population += popSize * 4;
 
-                        GenericObject stockpile = object.getChild("stockpile");
-                        if (stockpile != null) {
-                            for (ObjectVariable good : stockpile.values) {
-                                owner.addIntermediate(findProduct(good.getName()), Float.parseFloat(good.getValue()));
-                            }
+                if (ReportHelpers.POPS_RGO.contains(object.name)) {
+                    owner.workforceRGO += popSize;
+                } else if (ReportHelpers.POPS_FACTORY.contains(object.name)) {
+                    owner.workforceFactory += popSize;
+                } else if (ReportHelpers.POPS_ARTISANS.contains(object.name) && object.containsValue("production_type")) {
+
+                    GenericObject stockpile = object.getChild("stockpile");
+                    if (stockpile != null) {
+                        for (ObjectVariable good : stockpile.values) {
+                            owner.addIntermediate(findProduct(good.getName()), Float.parseFloat(good.getValue()));
                         }
                     }
-                } else {
-                    if (object.name.equalsIgnoreCase("rgo")) {
-                        //exact rgo output is not shown, we can guess based on last_income
-                        Product output = findProduct(object.getString("goods_type"));
-                        double lastIncome = object.getDouble("last_income") / 1000;
+                }
+            } else {
+                if (object.name.equalsIgnoreCase("rgo")) {
+                    //exact rgo output is not shown, we can guess based on last_income
+                    Product output = findProduct(object.getString("goods_type"));
+                    double lastIncome = object.getDouble("last_income") / 1000;
 
-                        // gold income calculation
-                        if (output.getName().equalsIgnoreCase("precious_metal"))
-                            owner.goldIncome += lastIncome;
+                    // gold income calculation
+                    if (output.getName().equalsIgnoreCase("precious_metal"))
+                        owner.goldIncome += lastIncome;
 
-                        //count RGO employees
-                        owner.employmentRGO += ReportHelpers.getEmployeeCount(object);
-
-                    }
+                    //count RGO employees
+                    owner.employmentRGO += ReportHelpers.getEmployeeCount(object);
 
                 }
+
             }
         }
     }
@@ -367,14 +376,40 @@ public class Report {
             return object.name.matches("[A-Z][A-Z0-9]{2}") && !object.isRoot() && object.getParent().isRoot();
         }
 
-        private boolean isProvince(GenericObject object) {
-            return object.getParent() != null && object.getParent().isRoot() && object.name.matches("[0-9]{1,4}");
-        }
-
         @Override
         public Boolean apply(GenericObject object, String s) {
             boolean discard = unwantedCommonTags.contains(s) || isCountry(object) && !countryTags.contains(s);
             return !discard;
         }
+    }
+
+    /**
+     * Consumer for root's children
+     */
+    class GenericObjectConsumer implements Consumer<GenericObject> {
+
+        @Override
+        public void accept(GenericObject object) {
+            if (isProvince(object)) {
+                loadProvince(object);
+            } else if (isCountry(object)) {
+                loadCountry(object);
+            } else if (isWorldMarket(object)) {
+                loadGlobalProductInfo(object.getRoot());
+            }
+        }
+
+        private boolean isProvince(GenericObject object) {
+            return object.name.matches("[0-9]{1,4}");
+        }
+
+        private boolean isCountry(GenericObject object) {
+            return object.name.matches("[A-Z][A-Z0-9]{2}") && object.containsChild("state");
+        }
+
+        private boolean isWorldMarket(GenericObject object) {
+            return object.name.equals("worldmarket");
+        }
+
     }
 }

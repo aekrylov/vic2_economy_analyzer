@@ -5,6 +5,7 @@ import eug.shared.GenericObject;
 
 import javax.swing.*;
 import java.io.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -177,7 +178,7 @@ public class CWordFile {
      * <code>null</code> if there was an error during loading.
      */
     public GenericObject load(final String filename) {
-        return load(filename, null);
+        return load(filename, (Function<GenericObject, Boolean>) null);
     }
 
     /**
@@ -213,6 +214,50 @@ public class CWordFile {
                     if (!objectFilter.apply(curr)) {
                         next.removeChild(curr);
                     }
+                }
+                curr = next;
+
+            } while (tokenType != TokenType.EOF);
+        } catch (ParserException ex) {
+            System.err.println(ex.getMessage());
+            if (!settings.isTryToRecover())
+                root = null;
+        } finally {
+            closeInStream();
+        }
+
+        //Tell some things about the current state:
+        if (numErrors > 0)
+            System.out.println("There were " + numErrors + " errors during loading.");
+//        System.out.println("Read " + tokenizer.getCharsRead() + " bytes.");
+        if (settings.isPrintTimingInfo())
+            System.out.println("Loading took " + (System.nanoTime() - startTime) + " ns.\n");
+
+        return root;
+    }
+
+    public GenericObject load(final String filename, Consumer<GenericObject> childrenConsumer) {
+        final long startTime = System.nanoTime();
+
+        if (!openInStream(filename))
+            return null;
+
+        //notify about loading
+        if (settings.isPrintTimingInfo())
+            System.out.println("Loading " + filename + ".");
+
+        GenericObject root = null;
+
+        try {
+            root = new GenericObject();
+            GenericObject curr = root;
+
+            //reading loop (per line mainly)
+            do {
+                GenericObject next = readObject(curr);
+                if (childrenConsumer != null && next == curr.getParent() && next.isRoot()) { //finished reading curr
+                    childrenConsumer.accept(curr);
+                    next.removeChild(curr);
                 }
                 curr = next;
 

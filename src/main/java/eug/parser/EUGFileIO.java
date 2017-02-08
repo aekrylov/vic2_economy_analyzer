@@ -12,6 +12,7 @@ import eug.shared.Version;
 
 import java.io.*;
 import java.util.Calendar;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -49,6 +50,11 @@ public final class EUGFileIO {
     public static GenericObject load(String filename, Function<GenericObject, Boolean> objectFilter) {
         final CWordFile f = new CWordFile();
         return f.load(filename, objectFilter);
+    }
+
+    public static GenericObject load(String filename, Consumer<GenericObject> childrenConsumer) {
+        final CWordFile f = new CWordFile();
+        return f.load(filename, childrenConsumer);
     }
 
     public static GenericObject load(String filename, NameFilter nameFilter) {
