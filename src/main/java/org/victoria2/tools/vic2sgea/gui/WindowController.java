@@ -12,13 +12,11 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 import org.victoria2.tools.vic2sgea.main.*;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
@@ -34,12 +32,6 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     Button btnGoods;
     @FXML
-    Button btnBrowseSave;
-    @FXML
-    Button btnBrowseLocal;
-    @FXML
-    Button btnBrowseMod;
-    @FXML
     public Label lblStartDate;
     @FXML
     public Label lblCurrentDate;
@@ -49,13 +41,15 @@ public class WindowController extends BaseController implements Initializable {
     public Label lblPopCount;
     @FXML
     TableView<Country> mainTable;
-    @FXML
-    TextField tfSaveGame;
-    @FXML
-    TextField tfLocalization;
-    @FXML
-    TextField tfModPath;
 
+    @FXML
+    FilePrompt fpSaveGame;
+    @FXML
+    FilePrompt fpGamePath;
+    @FXML
+    FilePrompt fpModPath;
+    @FXML
+    public Pane progressWrap;
     @FXML
     ProgressIndicator piLoad;
 
@@ -174,9 +168,9 @@ public class WindowController extends BaseController implements Initializable {
             errorAlert(e, "Couldn't load config");
         }*/
         PathKeeper.checkPaths();
-        tfLocalization.setText(PathKeeper.LOCALISATION_PATH);
-        tfSaveGame.setText(PathKeeper.SAVE_PATH);
-        tfModPath.setText(PathKeeper.MOD_PATH);
+        fpGamePath.setPath(PathKeeper.LOCALISATION_PATH);
+        fpSaveGame.setPath(PathKeeper.SAVE_PATH);
+        fpModPath.setPath(PathKeeper.MOD_PATH);
 
         lblPlayer.setOnMouseClicked(e -> {
             if (report != null) {
@@ -193,23 +187,11 @@ public class WindowController extends BaseController implements Initializable {
     }
 
     private void setInterfaceEnabled(boolean isEnabled) {
-        this.btnBrowseLocal.setDisable(!isEnabled);
-        this.btnBrowseSave.setDisable(!isEnabled);
-        this.btnBrowseMod.setDisable(!isEnabled);
-        this.btnGoods.setDisable(!isEnabled);
-        this.btnLoad.setDisable(!isEnabled);
-
-        this.tfLocalization.setDisable(!isEnabled);
-        this.tfModPath.setDisable(!isEnabled);
-        this.tfSaveGame.setDisable(!isEnabled);
-
-        this.mainTable.setDisable(!isEnabled);
-        this.lblPlayer.setDisable(!isEnabled);
-        this.piLoad.setVisible(!isEnabled);
-
+        progressWrap.setVisible(!isEnabled);
+        progressWrap.toFront();
     }
 
-    public final void onLoad(ActionEvent event) {
+    public void onLoad() {
 
         //Main.hideProductList();
         setInterfaceEnabled(false);
@@ -224,10 +206,13 @@ public class WindowController extends BaseController implements Initializable {
                 //float startTime=0;
 
                 try {
-                    String savePath = tfSaveGame.getText();
-                    String modPath = tfModPath.getText();
-                    String gamePath = tfLocalization.getText();
+                    String savePath = fpSaveGame.getPath();
+                    String modPath = fpModPath.getPath();
+                    String gamePath = fpGamePath.getPath();
 
+                    PathKeeper.SAVE_PATH = savePath;
+                    PathKeeper.MOD_PATH = modPath;
+                    PathKeeper.LOCALISATION_PATH = gamePath;
                     PathKeeper.save();
 
                     report = new Report(savePath, gamePath, modPath);
@@ -238,7 +223,7 @@ public class WindowController extends BaseController implements Initializable {
 
                     float res = ((float) System.nanoTime() - startTime) / 1000000000;
                     System.out.println("Nash: total time is " + res + " seconds");
-                    Platform.runLater(() -> self.setLabels());
+                    Platform.runLater(() -> setLabels());
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -261,69 +246,6 @@ public class WindowController extends BaseController implements Initializable {
         lblPlayer.setText(report.getPlayerCountry().getOfficialName());
         lblStartDate.setText(report.getStartDate());
         lblPopCount.setText(report.popCount + " pops total");
-    }
-
-    public final void onBrowseSave(ActionEvent event) {
-        // Throws error when user cancels selection
-        // SaveGame saveGame=new SaveGame();
-        try {
-            FileChooser fileChooser = new FileChooser();
-
-            if (!PathKeeper.SAVE_PATH.isEmpty()) {
-                //initialFile
-                File initialFile = new File(PathKeeper.SAVE_PATH).getParentFile();
-                fileChooser.setInitialDirectory(initialFile);
-            }
-
-            File file = fileChooser.showOpenDialog(null);
-            String temp = file.getPath().replace("\\", "/"); // Usable path
-            tfSaveGame.setText(temp);
-            PathKeeper.SAVE_PATH = temp;
-
-        } catch (NullPointerException ignored) {
-        }
-
-
-    }
-
-    public final void onBrowseLocal(ActionEvent event) {
-        // Throws error when user cancels selection
-        // SaveGame saveGame=new SaveGame();
-        try {
-            DirectoryChooser dirChooser = new DirectoryChooser();
-            File file;
-            if (PathKeeper.LOCALISATION_PATH != null) {
-                file = new File(PathKeeper.LOCALISATION_PATH);
-                if (file.exists())
-                    dirChooser.setInitialDirectory(file);
-            }
-            file = dirChooser.showDialog(null);
-            String temp = file.getPath().replace("\\", "/"); // Usable path
-            tfLocalization.setText(temp);
-            PathKeeper.LOCALISATION_PATH = temp;
-        } catch (NullPointerException ignored) {
-        }
-
-
-    }
-
-    public final void onBrowseMod(ActionEvent event) {
-        // Throws error when user cancels selection
-        // SaveGame saveGame=new SaveGame();
-        try {
-            DirectoryChooser dirChooser = new DirectoryChooser();
-            File file;
-            if (PathKeeper.MOD_PATH != null) {
-                file = new File(PathKeeper.MOD_PATH);
-                if (file.exists())
-                    dirChooser.setInitialDirectory(file);
-            }
-            file = dirChooser.showDialog(null);
-            String temp = file.getPath().replace("\\", "/"); // Usable path
-            tfModPath.setText(temp);
-            PathKeeper.MOD_PATH = temp;
-        } catch (NullPointerException ignored) {
-        }
     }
 
     public void setProductListController(ProductListController productListController) {

@@ -1,5 +1,6 @@
 package org.victoria2.tools.vic2sgea.gui;
 
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.cell.TextFieldTableCell;
@@ -28,5 +29,9 @@ public abstract class BaseController {
 
     protected static <T, S> void setCellFactory(TableColumn<T, S> column, StringConverter<S> converter) {
         column.setCellFactory(TextFieldTableCell.forTableColumn(converter));
+    }
+
+    public void exit() {
+        Platform.exit();
     }
 }
