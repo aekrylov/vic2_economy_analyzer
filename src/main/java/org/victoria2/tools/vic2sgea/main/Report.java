@@ -96,6 +96,7 @@ public class Report {
         readLocalisations(modPath);
 
         loadMisc(root);
+        System.out.println("Nash: loading complete");
     }
 
     public Report(String savePath, String gamePath, String modPath) {

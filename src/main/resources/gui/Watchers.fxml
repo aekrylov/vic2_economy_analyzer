@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.VBox?>
+<?import org.victoria2.tools.vic2sgea.gui.FilePrompt?>
+<VBox xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.victoria2.tools.vic2sgea.gui.WatchersController" spacing="10" styleClass="window-root">
+    <FilePrompt promptType="FILE" fx:id="fpHistoryFile" labelText="History file: "/>
+    <FilePrompt promptType="DIR" fx:id="fpSaveDir" labelText="Directory with .v2 files to scan: "/>
+
+    <Button fx:id="btnStart" text="Start" onAction="#startWatcher"/>
+</VBox>

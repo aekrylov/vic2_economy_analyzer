@@ -18,11 +18,16 @@ public class Watcher extends Thread {
 
     private WatchService watchService = FileSystems.getDefault().newWatchService();
     private Path historyPath;
+    private Path saveDir;
     private Watch watch;
 
     public Watcher(Path historyPath, Path saveDir) throws IOException {
         this.watch = read(historyPath);
+        if (watch == null) {
+            watch = new Watch();
+        }
         this.historyPath = historyPath;
+        this.saveDir = saveDir;
 
         saveDir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY);
     }
@@ -33,19 +38,29 @@ public class Watcher extends Thread {
 
     @Override
     public void run() {
+        System.out.println("Started watcher for file " + historyPath);
         while (true) {
             try {
                 WatchKey key = watchService.take();
+                //sometimes modify event is fired twice so skip it
                 for (WatchEvent<?> event : key.pollEvents()) {
-                    WatchEvent<Path> pathEvent = ((WatchEvent<Path>) event);
-                    Path lastSave = pathEvent.context();
+                    WatchEvent<Path> pathEvent = (WatchEvent<Path>) event;
+
+                    Path lastSave = saveDir.resolve(pathEvent.context());
+                    System.out.println(event.kind() + " " + Files.size(lastSave));
+                    if (Files.size(lastSave) == 0) {
+                        //handling duplicate events
+                        continue;
+                    }
 
                     Report report = new Report(lastSave.toString(), null, null);
                     WorldState state = new WorldState(report);
-                    watch.addState(state);
+                    watch.addState(report.getCurrentDate(), state);
                     //write watch
                     write(watch, historyPath);
                 }
+                key.reset();
+
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 continue;
