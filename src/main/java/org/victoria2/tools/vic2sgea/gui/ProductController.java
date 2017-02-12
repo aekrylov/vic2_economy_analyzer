@@ -1,9 +1,9 @@
 package org.victoria2.tools.vic2sgea.gui;
 
 import javafx.scene.chart.PieChart;
-import org.victoria2.tools.vic2sgea.main.Country;
-import org.victoria2.tools.vic2sgea.main.Product;
-import org.victoria2.tools.vic2sgea.main.ProductStorage;
+import org.victoria2.tools.vic2sgea.entities.Country;
+import org.victoria2.tools.vic2sgea.entities.Product;
+import org.victoria2.tools.vic2sgea.entities.ProductStorage;
 import org.victoria2.tools.vic2sgea.main.Report;
 
 import java.util.ArrayList;

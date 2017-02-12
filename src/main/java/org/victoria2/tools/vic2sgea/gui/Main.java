@@ -6,8 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import org.victoria2.tools.vic2sgea.main.Country;
-import org.victoria2.tools.vic2sgea.main.Product;
+import org.victoria2.tools.vic2sgea.entities.Country;
+import org.victoria2.tools.vic2sgea.entities.Product;
 import org.victoria2.tools.vic2sgea.main.Properties;
 import org.victoria2.tools.vic2sgea.main.Report;
 

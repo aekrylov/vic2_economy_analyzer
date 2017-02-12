@@ -16,7 +16,11 @@ import javafx.scene.layout.Priority;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
-import org.victoria2.tools.vic2sgea.main.*;
+import org.victoria2.tools.vic2sgea.entities.Country;
+import org.victoria2.tools.vic2sgea.main.PathKeeper;
+import org.victoria2.tools.vic2sgea.main.Report;
+import org.victoria2.tools.vic2sgea.main.TableRowDoubleClickFactory;
+import org.victoria2.tools.vic2sgea.main.Wrapper;
 
 import java.io.File;
 import java.io.PrintWriter;
