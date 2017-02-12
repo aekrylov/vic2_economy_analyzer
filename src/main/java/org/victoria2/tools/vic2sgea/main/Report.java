@@ -237,9 +237,15 @@ public class Report {
         fieldMap.put("price_change", Product::setTrend);
         fieldMap.put("demand", Product::setMaxDemand);
         fieldMap.put("real_demand", Product::setDemand);
-        fieldMap.put("actual_sold", Product::setConsumption);
         fieldMap.put("supply_pool", Product::setSupply);
-        fieldMap.put("actual_sold_world", Product::setActualSoldWorld);
+
+        //todo it seems that actual_sold and actual_sold_world add up to real_demand
+        fieldMap.put("actual_sold", Product::incConsumption);
+        fieldMap.put("actual_sold_world", (product, value) -> {
+            product.setActualSoldWorld(value);
+            product.incConsumption(value);
+        });
+
         fieldMap.put("worldmarket_pool", Product::setWorldmarketPool);
 
         for (Map.Entry<String, BiConsumer<Product, Float>> entry : fieldMap.entrySet()) {

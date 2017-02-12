@@ -53,6 +53,7 @@ public class ProductStorage extends EconomySubject {
 
     public void innerCalculations() {
         // calculating actual supply
+        //todo handle common market
         float thrownToMarket = (totalSupply - soldDomestic);
         if (thrownToMarket <= 0)
             sold = totalSupply;

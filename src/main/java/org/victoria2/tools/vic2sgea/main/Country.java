@@ -125,12 +125,17 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return population;
     }
 
+    public float getUnemploymentRate() {
+        long totalWorkforce = workforceRGO + workforceFactory;
+        return (float) totalWorkforce * 4 / population * 100;
+    }
+
     public float getUnemploymentRateRgo() {
         return (float) ((workforceRGO - employmentRGO) * 4. / population * 100);
     }
 
     public float getUnemploymentRateFactory() {
-        return (workforceFactory - employmentFactory) * 4 / (float) population * 100;
+        return (workforceFactory - employmentFactory) / (float) workforceFactory * 100;
     }
 
     public long getWorkforceRgo() {
