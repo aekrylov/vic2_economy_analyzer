@@ -1,0 +1,108 @@
+- exceptions on double loadEUG
+
+> remove old names
+
+> exceptions
+> memory fight
+
+> sereliazation?
+> player pop count info
+
+
+> fix ierarhy
+
+
+? bugs in goods becouse of brokern trade screen&
+> add "unsolded" string
+
+still lost goods (is it about SOI?)
+
+gdp = consumption + export - import
+market activity  in game broken, includes unsold
+- also roundation - long - errors?
+> sdvig windows like vic 2
+> redo table onclicks
+> not full gold calculation
+> resible windows ÍÅ ÏÎËÓ×ÀÅÒÖÀ
+> íàäî áû çàêðûâàòü ñòàðûå îêíà ÌÎÄÀËÜÍÎÑÈÒÒÜ
+> sort in everywhere
+> smaller fonts
+> make errrors writting in log
+> table styles
+---------------------
+9th
+----------------------
++ KMG converter
++ better look
++ factory unempoyment
+---------------------
+8th
+----------------------
++ made availabele  total country click (there is 2 way to calculate total: as total summ of all countries and as total is one global country. Both used, that is why total pie chart is so contradictory)
+* "overflows"
++ better player names
++ total load time
+
+> sort in Country window and in Goodslist.
+
+* wrong toatal calcs, Should be direct summ
+
++ clicable player names
+
++ multithreading (one), nice indicator.
++ Load is default button now.
+
+
+---------------------
+7th
+----------------------
+
++ my first reflection!
++ consumption & export & mimport charts
++ added export & import
+* consumption does include import. But not full import
++ add total in charts
+* lost goods in charts. PArtyally?
+* redo find goods !!!
+* more info for goods
+
+* change calculation place for consumption in goods
+
++ acyual_bought - description
+---------------------
+6th
+----------------------
+New window production
++ Consumption in goods window: added goat sucrifising algoritm.
+* 	BAG IN supply calc
+* roundation error on small supply
+* start patch for save games
++ start date & current
+* more right consumption in main window
+* gold income lost
+* redo consumption storage calculation
++ excelent GDP!!
+
+* AGAIN, trashed includeded
+---------------------
+5th
+----------------------
+*wrong GDP gold calc
++ goods window
+* minor fixes
+* could have a lot of minor error
+* russian localizations
+-0------------------------
+4th version
+---------------------------
+
++ mod loading
++ debug messages
+* "Total" string
++ gold mine calculation & buggy?
++ shall for states
++ test propertys
+
+---------------------------
+3 version
+----------------

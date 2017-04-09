@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<AnchorPane prefHeight="600.0" prefWidth="1150.0"
+            xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2"
+            fx:controller="org.victoria2.tools.vic2sgea.gui.ProductListController">
+    <ToggleButton layoutX="10" text="Hide zeros" fx:id="btnHideZeros"/>
+    <TableView fx:id="productsTable" tableMenuButtonVisible="true"
+               AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="50"
+               AnchorPane.leftAnchor="0">
+        <columns>
+            <TableColumn prefWidth="131.0" text="Name" fx:id="colName"/>
+            <TableColumn prefWidth="113.0" text="Supply" fx:id="colRealSupply"/>
+            <TableColumn prefWidth="113.0" text="Actual supply" fx:id="colActualSupply"/>
+            <TableColumn prefWidth="100" text="Consumption" fx:id="colConsumption"/>
+            <TableColumn prefWidth="100" text="Demand" fx:id="colAffordable"/>
+            <TableColumn prefWidth="100" text="Max demand" fx:id="colMaxDemand"/>
+            <TableColumn prefWidth="97.0" text="Base price" fx:id="colBasePrice"/>
+            <TableColumn prefWidth="97.0" text="Min price*" fx:id="colMinPrice"/>
+            <TableColumn prefWidth="97.0" text="Max price*" fx:id="colMaxPrice"/>
+            <TableColumn prefWidth="100" text="Market price" fx:id="colPrice"/>
+            <TableColumn prefWidth="60" text="Trend" fx:id="colTrend"/>
+            <TableColumn prefWidth="100" text="Overproduced %" fx:id="colOverproduced"/>
+            <TableColumn text="Inflation %" fx:id="colInflation"/>
+        </columns>
+    </TableView>
+
+</AnchorPane>
