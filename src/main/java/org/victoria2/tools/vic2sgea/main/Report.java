@@ -141,10 +141,8 @@ public class Report {
         String line;
         while ((line = in.readLine()) != null) {
             String[] dataArray = line.split(";");
-            if (dataArray.length < 1)
                 continue;
-
-            setCountryName(dataArray[0], dataArray[1]);
+            setCountryName(dataArray[0], dataArray[1]); 
         }
         in.close();
     }

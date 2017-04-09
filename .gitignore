@@ -39,3 +39,5 @@ crashlytics-build.properties
 fabric.properties
 
 /path.txt
+run.bat
+compile.bat
