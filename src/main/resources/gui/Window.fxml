@@ -81,6 +81,8 @@
             </columns>
         </TableView>
 
+        <Label alignment="CENTER" prefHeight="21.0" prefWidth="1366.0" text="Victoria 2 save game economy analyzer (inspired by Lionhunter's war analyzer)" />
+        <Label alignment="CENTER" prefHeight="21.0" prefWidth="1369.0" text="Distributing under BSD License. Used  EugFile: an open-source Java library" />
     </VBox>
 
     <ProgressIndicator fx:id="piLoad" prefHeight="152.0" prefWidth="106.0" progress="-0.03" visible="false" AnchorPane.bottomAnchor="300.0" AnchorPane.leftAnchor="500.0" AnchorPane.rightAnchor="500.0" AnchorPane.topAnchor="300.0" />
