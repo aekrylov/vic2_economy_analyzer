@@ -41,3 +41,4 @@ fabric.properties
 /path.txt
 run.bat
 compile.bat
+pack.bat
