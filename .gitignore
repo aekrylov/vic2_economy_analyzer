@@ -42,3 +42,7 @@ fabric.properties
 run.bat
 compile.bat
 pack.bat
+.settings/org.eclipse.jdt.core.prefs
+.project
+.classpath
+

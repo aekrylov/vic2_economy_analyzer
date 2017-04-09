@@ -141,6 +141,7 @@ public class Report {
         String line;
         while ((line = in.readLine()) != null) {
             String[] dataArray = line.split(";");
+            if (dataArray == null || dataArray.length <= 1) // <=1 - otherwise dataArray[1] gaves Out of Boundaries exception in setCountryName(dataArray[0], dataArray[1]) some times - nash
                 continue;
             setCountryName(dataArray[0], dataArray[1]); 
         }

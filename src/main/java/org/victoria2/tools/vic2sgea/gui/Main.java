@@ -12,7 +12,7 @@ import org.victoria2.tools.vic2sgea.main.Properties;
 import org.victoria2.tools.vic2sgea.main.Report;
 
 import java.io.IOException;
-
+  
 public class Main extends Application {
 
     private static Stage productsWindow;
