@@ -39,3 +39,10 @@ crashlytics-build.properties
 fabric.properties
 
 /path.txt
+run.bat
+compile.bat
+pack.bat
+.settings/org.eclipse.jdt.core.prefs
+.project
+.classpath
+
