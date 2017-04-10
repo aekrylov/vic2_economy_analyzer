@@ -22,4 +22,8 @@ public class Watch {
     public void addState(String date, WorldState state) {
         history.put(date, state);
     }
+
+    public Map<String, WorldState> getHistory() {
+        return history;
+    }
 }
