@@ -1,9 +1,7 @@
 package org.victoria2.tools.vic2sgea.watcher;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Created by anth on 12.02.2017.
@@ -20,24 +18,23 @@ public class WatcherManager {
         return instance;
     }
 
-    private Map<Path, Watcher> watcherMap = new HashMap<>();
+    final private ObservableList<Watcher> watcherList = FXCollections.observableArrayList();
 
     private WatcherManager() {
     }
 
-    public void add(Path historyFile, Path saveDir) throws IOException {
-        Watcher watcher = new Watcher(historyFile, saveDir);
-        watcherMap.put(historyFile, watcher);
+    public void add(Watcher watcher) {
+        watcherList.add(watcher);
         watcher.start();
     }
 
-    public Watcher remove(Path historyFile) {
-        Watcher watcher = watcherMap.remove(historyFile);
-        if (watcher != null) {
+    public void remove(Watcher watcher) {
+        watcherList.remove(watcher);
+        if (watcher != null)
             watcher.interrupt();
-        }
-
-        return watcher;
     }
 
+    public ObservableList<Watcher> getWatcherList() {
+        return watcherList;
+    }
 }

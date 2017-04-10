@@ -17,16 +17,19 @@ import java.nio.file.*;
 public class Watcher extends Thread {
 
     private WatchService watchService = FileSystems.getDefault().newWatchService();
-    private Path historyPath;
+    private Path historyFile;
     private Path saveDir;
     private Watch watch;
 
-    public Watcher(Path historyPath, Path saveDir) throws IOException {
-        this.watch = read(historyPath);
+    public Watcher(Path historyFile, Path saveDir) throws IOException {
+        if (!Files.exists(historyFile))
+            Files.createFile(historyFile);
+
+        this.watch = read(historyFile);
         if (watch == null) {
             watch = new Watch();
         }
-        this.historyPath = historyPath;
+        this.historyFile = historyFile;
         this.saveDir = saveDir;
 
         saveDir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY);
@@ -38,7 +41,7 @@ public class Watcher extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Started watcher for file " + historyPath);
+        System.out.println("Started watcher for file " + historyFile);
         while (true) {
             try {
                 WatchKey key = watchService.take();
@@ -57,7 +60,7 @@ public class Watcher extends Thread {
                     WorldState state = new WorldState(report);
                     watch.addState(report.getCurrentDate(), state);
                     //write watch
-                    write(watch, historyPath);
+                    write(watch, historyFile);
                 }
                 key.reset();
 
@@ -84,5 +87,13 @@ public class Watcher extends Thread {
 
         String json = gson.toJson(watch, Watch.class);
         Files.write(historyPath, json.getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    public Path getHistoryFile() {
+        return historyFile;
+    }
+
+    public Path getSaveDir() {
+        return saveDir;
     }
 }
