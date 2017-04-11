@@ -71,7 +71,7 @@ public class WatchersController extends BaseController implements Initializable 
         private Watcher watcher;
 
         public RemoveWatcherButton(Watcher watcher) {
-            super("Remove");
+            super("Stop");
             this.watcher = watcher;
         }
 

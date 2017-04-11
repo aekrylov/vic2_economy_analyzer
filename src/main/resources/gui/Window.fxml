@@ -10,7 +10,9 @@
             <MenuItem text="Quit" onAction="#exit"/>
         </Menu>
         <Menu text="Watchers">
-            <MenuItem text="New history file..." onAction="#createNewHistory"/>
+            <!--
+                        <MenuItem text="New history file..." onAction="#createNewHistory"/>
+            -->
             <MenuItem text="Set active watcher..." onAction="#onSetActiveWatcher"/>
         </Menu>
     </MenuBar>
