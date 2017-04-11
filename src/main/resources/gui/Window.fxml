@@ -9,6 +9,10 @@
         <Menu text="File">
             <MenuItem text="Quit" onAction="#exit"/>
         </Menu>
+        <Menu text="Watchers">
+            <MenuItem text="New history file..." onAction="#createNewHistory"/>
+            <MenuItem text="Set active watcher..." onAction="#onSetActiveWatcher"/>
+        </Menu>
     </MenuBar>
 
     <AnchorPane VBox.vgrow="ALWAYS">
@@ -33,7 +37,7 @@
                         onAction="#onLoad" prefWidth="86.0" prefHeight="50." text="Load!"
                         GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.rowSpan="2"/>
 
-                <Button fx:id="btnGoods" disable="true" mnemonicParsing="false"
+                <Button fx:id="btnGoods" mnemonicParsing="false"
                         onAction="#onGoods"
                         prefWidth="86.0" text="Goods"
                         GridPane.columnIndex="0" GridPane.rowIndex="2"/>

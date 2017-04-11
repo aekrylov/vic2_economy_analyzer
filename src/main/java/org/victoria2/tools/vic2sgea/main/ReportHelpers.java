@@ -4,6 +4,7 @@ import eug.parser.EUGFileIO;
 import eug.shared.GenericList;
 import eug.shared.GenericObject;
 import javafx.scene.paint.Color;
+import org.victoria2.tools.vic2sgea.entities.Product;
 
 import java.io.File;
 import java.nio.file.Path;

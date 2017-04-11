@@ -1,4 +1,4 @@
-package org.victoria2.tools.vic2sgea.main;
+package org.victoria2.tools.vic2sgea.entities;
 
 public class Province {
     private int id;

@@ -1,4 +1,4 @@
-package org.victoria2.tools.vic2sgea.main;
+package org.victoria2.tools.vic2sgea.entities;
 
 import javafx.scene.paint.Color;
 
@@ -43,12 +43,12 @@ public class Product implements Comparable<Product> {
     /**
      * How much was thrown to the world market
      */
-    public float worldmarketPool;
+    float worldmarketPool;
     /**
      * How much was sold on the world market
      */
-    public float actualSoldWorld;
-    String name = "";
+    float actualSoldWorld;
+    final String name;
 
     private Color color;
 

@@ -2,7 +2,11 @@ package org.victoria2.tools.vic2sgea.gui;
 
 import javafx.scene.chart.PieChart;
 import javafx.scene.paint.Color;
-import org.victoria2.tools.vic2sgea.main.*;
+import org.victoria2.tools.vic2sgea.entities.Country;
+import org.victoria2.tools.vic2sgea.entities.EconomySubject;
+import org.victoria2.tools.vic2sgea.entities.Product;
+import org.victoria2.tools.vic2sgea.entities.ProductStorage;
+import org.victoria2.tools.vic2sgea.main.Report;
 
 import java.util.List;
 import java.util.Map;

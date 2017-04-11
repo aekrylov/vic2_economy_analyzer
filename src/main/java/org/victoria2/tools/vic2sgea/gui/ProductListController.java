@@ -7,7 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.ToggleButton;
-import org.victoria2.tools.vic2sgea.main.Product;
+import org.victoria2.tools.vic2sgea.entities.Product;
 import org.victoria2.tools.vic2sgea.main.Report;
 import org.victoria2.tools.vic2sgea.main.TableRowDoubleClickFactory;
 
