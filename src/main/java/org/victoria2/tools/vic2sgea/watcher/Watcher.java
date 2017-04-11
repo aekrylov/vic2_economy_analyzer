@@ -6,6 +6,7 @@ import org.victoria2.tools.vic2sgea.main.Report;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.List;
 
 /**
  * Created by anth on 12.02.2017.
@@ -32,7 +33,7 @@ public class Watcher extends Thread {
         this.historyFile = historyFile;
         this.saveDir = saveDir;
 
-        saveDir.register(watchService, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_MODIFY);
+        saveDir.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
     }
 
     public Watch getWatch() {
@@ -43,27 +44,34 @@ public class Watcher extends Thread {
     public void run() {
         System.out.println("Started watcher for file " + historyFile);
         while (true) {
+            //todo fix duplicate loading
             try {
                 WatchKey key = watchService.take();
-                //sometimes modify event is fired twice so skip it
-                for (WatchEvent<?> event : key.pollEvents()) {
+                List<WatchEvent<?>> events = key.pollEvents();
+
+                events.forEach(event -> {
                     WatchEvent<Path> pathEvent = (WatchEvent<Path>) event;
-
                     Path lastSave = saveDir.resolve(pathEvent.context());
-                    System.out.println(event.kind() + " " + Files.size(lastSave));
-                    if (Files.size(lastSave) == 0) {
-                        //handling duplicate events
-                        continue;
+                    try {
+                        System.out.println(event.kind() + " " + Files.size(lastSave));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+                });
 
+                //assume that events are rare, so that one series of events corresponds to one file
+                //in that case, we only need the last event
+                WatchEvent<Path> event = (WatchEvent<Path>) events.get(events.size() - 1);
+                Path lastSave = saveDir.resolve(event.context());
+                if (Files.size(lastSave) > 0) {
                     Report report = new Report(lastSave.toString(), null, null);
                     WorldState state = new WorldState(report);
                     watch.addState(report.getCurrentDate(), state);
                     //write watch
                     write(watch, historyFile);
                 }
-                key.reset();
 
+                key.reset();
             } catch (InterruptedException e) {
                 e.printStackTrace();
                 continue;
