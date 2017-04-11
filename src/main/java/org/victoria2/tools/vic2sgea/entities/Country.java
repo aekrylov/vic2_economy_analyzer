@@ -1,6 +1,5 @@
-package org.victoria2.tools.vic2sgea.main;
+package org.victoria2.tools.vic2sgea.entities;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,19 +31,22 @@ public class Country extends EconomySubject implements Comparable<Country> {
      * Summ for country
      */
     public long workforceRGO;
+
+    @NonSerializable //too expensive to serialize this
     private Map<String, ProductStorage> storageMap = new HashMap<>();
+    @NonSerializable
     private String officialName = "";
 
     private float GDPPart;
 
-    int GDPPlace;
+    private int GDPPlace;
     /**
      * Summ for country in pounds
      */
-    float goldIncome;
-    ArrayList<Province> provinces = new ArrayList<>();
+    private float goldIncome;
     private String tag;
 
+    @NonSerializable //temporary variable
     private Map<Product, Float> intermediate = new HashMap<>();
 
     public void add(Country that) {
@@ -125,12 +127,17 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return population;
     }
 
+    public float getUnemploymentRate() {
+        long totalWorkforce = workforceRGO + workforceFactory;
+        return (float) totalWorkforce * 4 / population * 100;
+    }
+
     public float getUnemploymentRateRgo() {
         return (float) ((workforceRGO - employmentRGO) * 4. / population * 100);
     }
 
     public float getUnemploymentRateFactory() {
-        return (workforceFactory - employmentFactory) * 4 / (float) population * 100;
+        return (workforceFactory - employmentFactory) / (float) workforceFactory * 100;
     }
 
     public long getWorkforceRgo() {
@@ -201,4 +208,23 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return storageMap;
     }
 
+    public void setGDPPlace(int GDPPlace) {
+        this.GDPPlace = GDPPlace;
+    }
+
+    public void addPopulation(int value) {
+        population += value;
+    }
+
+    public void addEmploymentRgo(int value) {
+        employmentRGO += value;
+    }
+
+    public void addEmploymentFactory(int value) {
+        employmentFactory += value;
+    }
+
+    public void addGoldIncome(float value) {
+        goldIncome += value;
+    }
 }

@@ -4,6 +4,9 @@ import eug.parser.CWordFile;
 import eug.parser.ChildrenConsumer;
 import eug.shared.GenericObject;
 import eug.shared.ObjectVariable;
+import org.victoria2.tools.vic2sgea.entities.Country;
+import org.victoria2.tools.vic2sgea.entities.Product;
+import org.victoria2.tools.vic2sgea.entities.ProductStorage;
 
 import java.io.*;
 import java.util.*;
@@ -93,6 +96,7 @@ public class Report {
         readLocalisations(modPath);
 
         loadMisc(root);
+        System.out.println("Nash: loading complete");
     }
 
     public Report(String savePath, String gamePath, String modPath) {
@@ -193,7 +197,7 @@ public class Report {
         countryList.sort(Comparator.reverseOrder());
         int calc = 0;
         for (Country country : countryList) {
-            country.GDPPlace = calc;
+            country.setGDPPlace(calc);
             calc++;
         }
 
@@ -236,9 +240,15 @@ public class Report {
         fieldMap.put("price_change", Product::setTrend);
         fieldMap.put("demand", Product::setMaxDemand);
         fieldMap.put("real_demand", Product::setDemand);
-        fieldMap.put("actual_sold", Product::setConsumption);
         fieldMap.put("supply_pool", Product::setSupply);
-        fieldMap.put("actual_sold_world", Product::setActualSoldWorld);
+
+        //todo it seems that actual_sold and actual_sold_world add up to real_demand
+        fieldMap.put("actual_sold", Product::incConsumption);
+        fieldMap.put("actual_sold_world", (product, value) -> {
+            product.setActualSoldWorld(value);
+            product.incConsumption(value);
+        });
+
         fieldMap.put("worldmarket_pool", Product::setWorldmarketPool);
 
         for (Map.Entry<String, BiConsumer<Product, Float>> entry : fieldMap.entrySet()) {
@@ -293,7 +303,7 @@ public class Report {
                         country.addIntermediate(findProduct(good.getName()), Float.parseFloat(good.getValue()));
                     }
 
-                    country.employmentFactory += ReportHelpers.getEmployeeCount(building);
+                    country.addEmploymentFactory(ReportHelpers.getEmployeeCount(building));
                 }
             }
 
@@ -318,7 +328,7 @@ public class Report {
             if (object.contains("size")) {
                 popCount++;
                 int popSize = object.getInt("size");
-                owner.population += popSize * 4;
+                owner.addPopulation(popSize * 4);
 
                 if (ReportHelpers.POPS_RGO.contains(object.name)) {
                     owner.workforceRGO += popSize;
@@ -341,10 +351,10 @@ public class Report {
 
                     // gold income calculation
                     if (output.getName().equalsIgnoreCase("precious_metal"))
-                        owner.goldIncome += lastIncome;
+                        owner.addGoldIncome((float) lastIncome);
 
                     //count RGO employees
-                    owner.employmentRGO += ReportHelpers.getEmployeeCount(object);
+                    owner.addEmploymentRgo(ReportHelpers.getEmployeeCount(object));
 
                 }
 

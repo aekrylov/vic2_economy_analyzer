@@ -1,7 +1,7 @@
-package org.victoria2.tools.vic2sgea.main;
+package org.victoria2.tools.vic2sgea.entities;
 
 public class ProductStorage extends EconomySubject {
-    public ProductStorage(Product igood) {
+    ProductStorage(Product igood) {
         product = igood;
     }
 
@@ -53,6 +53,7 @@ public class ProductStorage extends EconomySubject {
 
     public void innerCalculations() {
         // calculating actual supply
+        //todo handle common market
         float thrownToMarket = (totalSupply - soldDomestic);
         if (thrownToMarket <= 0)
             sold = totalSupply;

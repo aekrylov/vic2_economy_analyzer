@@ -1,4 +1,4 @@
-package org.victoria2.tools.vic2sgea.main;
+package org.victoria2.tools.vic2sgea.entities;
 
 import javafx.scene.paint.Color;
 
@@ -41,14 +41,14 @@ public class Product implements Comparable<Product> {
      */
     public float actualSupply;
     /**
-     * global, in pieces, how much was thrown to global market
+     * How much was thrown to the world market
      */
-    public float worldmarketPool;
+    float worldmarketPool;
     /**
-     * global, in pieces
+     * How much was sold on the world market
      */
-    public float actualSoldWorld;
-    String name = "";
+    float actualSoldWorld;
+    final String name;
 
     private Color color;
 
@@ -70,11 +70,7 @@ public class Product implements Comparable<Product> {
     }
 
     public float getConsumption() {
-        if (supply >= consumption && consumption <= demand)
-            return Math.min(supply, demand);
-        else
-            return consumption;
-
+        return consumption;
     }
 
     public float getSupply() {
@@ -127,6 +123,10 @@ public class Product implements Comparable<Product> {
 
     public void setConsumption(float consumption) {
         this.consumption = consumption;
+    }
+
+    public void incConsumption(float value) {
+        consumption += value;
     }
 
     public void setSupply(float supply) {
