@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 /**
@@ -44,7 +45,9 @@ public class WatchersController extends BaseController implements Initializable 
     public void startWatcher() {
         Path historyFile = Paths.get(fpHistoryFile.getPath());
         Path saveDir = Paths.get(fpSaveDir.getPath());
-
+        PathKeeper.HISTORY_FILE = historyFile.toString();
+        //PathKeeper.SAVE_DIR = saveDir.toString();
+        PathKeeper.save();
         try {
             Watcher watcher = new Watcher(historyFile, saveDir);
             watcherManager.add(watcher);
@@ -55,10 +58,11 @@ public class WatchersController extends BaseController implements Initializable 
     }
 
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    public void initialize(URL location, ResourceBundle resources) {    	
         String savePath = PathKeeper.SAVE_PATH;
         fpSaveDir.setPath(Paths.get(savePath).getParent().toString());
-        colHistoryFile.setCellValueFactory(new PropertyValueFactory<>("historyFile"));
+        PathKeeper.checkPaths();  	    
+  	    colHistoryFile.setCellValueFactory(new PropertyValueFactory<>("historyFile", PathKeeper.HISTORY_FILE));
         colSaveDir.setCellValueFactory(new PropertyValueFactory<>("saveDir"));
 
         colActions.setCellFactory(column -> new WatcherActionCell());
