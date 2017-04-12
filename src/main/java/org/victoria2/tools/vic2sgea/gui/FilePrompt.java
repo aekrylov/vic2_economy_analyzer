@@ -1,6 +1,7 @@
 package org.victoria2.tools.vic2sgea.gui;
 
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -34,12 +35,22 @@ public class FilePrompt extends HBox {
         setHgrow(pathField, Priority.ALWAYS);
         label.setPrefWidth(100.);
 
+        labelWidth.addListener((observable, oldValue, newValue) -> label.setPrefWidth((Double) newValue));
+
     }
 
-    private StringProperty labelText;
+    private DoubleProperty labelWidth = new SimpleDoubleProperty(100.);
+
+    public double getLabelWidth() {
+        return labelWidth.get();
+    }
+
+    public void setLabelWidth(double labelWidth) {
+        this.labelWidth.set(labelWidth);
+    }
 
     public String getLabelText() {
-        return labelText.get();
+        return label.getText();
     }
 
     public void setLabelText(String labelText) {

@@ -3,17 +3,23 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.victoria2.tools.vic2sgea.gui.FilePrompt?>
-<VBox id="idControl" xmlns="http://javafx.com/javafx/8.0.101"
+<VBox id="idControl" xmlns="http://javafx.com/javafx/8.0.111"
       xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.victoria2.tools.vic2sgea.gui.WindowController">
     <MenuBar>
         <Menu text="File">
             <MenuItem text="Quit" onAction="#exit"/>
         </Menu>
+        <Menu text="Watchers">
+            <!--
+                        <MenuItem text="New history file..." onAction="#createNewHistory"/>
+            -->
+            <MenuItem text="Set active watcher..." onAction="#onSetActiveWatcher"/>
+        </Menu>
     </MenuBar>
 
     <AnchorPane VBox.vgrow="ALWAYS">
-        <VBox AnchorPane.bottomAnchor="14" AnchorPane.topAnchor="14"
-              AnchorPane.rightAnchor="14" AnchorPane.leftAnchor="14" spacing="10">
+        <VBox spacing="10" AnchorPane.bottomAnchor="14" AnchorPane.leftAnchor="14"
+              AnchorPane.rightAnchor="14" AnchorPane.topAnchor="14" >
 
             <GridPane fx:id="headerPane" hgap="5" vgap="5">
 
@@ -33,7 +39,7 @@
                         onAction="#onLoad" prefWidth="86.0" prefHeight="50." text="Load!"
                         GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.rowSpan="2"/>
 
-                <Button fx:id="btnGoods" disable="true" mnemonicParsing="false"
+                <Button fx:id="btnGoods" mnemonicParsing="false"
                         onAction="#onGoods"
                         prefWidth="86.0" text="Goods"
                         GridPane.columnIndex="0" GridPane.rowIndex="2"/>
@@ -51,42 +57,41 @@
 
             </GridPane>
 
-            <TableView id="table" fx:id="mainTable" tableMenuButtonVisible="true"
-                       VBox.vgrow="ALWAYS">
-                <columns>
-                    <TableColumn fx:id="colImage" prefWidth="30" text="Flag"/>
-                    <TableColumn fx:id="colCountry" prefWidth="200" text="Country"/>
-                    <TableColumn id="colPopulation" fx:id="colPopulation" prefWidth="100" text="Population"/>
-                    <TableColumn fx:id="colConsumption" prefWidth="85.0" text="Consumption"/>
-                    <TableColumn fx:id="colExport" prefWidth="85.0" text="Export"/>
-                    <TableColumn fx:id="colImport" prefWidth="84.0" text="Import"/>
-                    <TableColumn fx:id="colActualSupply" prefWidth="95.0" text="Actual supply"/>
-                    <TableColumn fx:id="colGdp" prefWidth="95.0" text="GDP"/>
-                    <TableColumn fx:id="colGDPPer" prefWidth="100.0" text="GDP per capita"/>
-                    <TableColumn fx:id="colGDPPlace" prefWidth="58.0" text="GDP #"/>
-                    <TableColumn fx:id="colGDPPart" prefWidth="85.0" text="GDP %"/>
-                    <TableColumn fx:id="colGoldIncome" prefWidth="85.0" text="Gold income"/>
-                    <TableColumn fx:id="colWorkForceRgo" prefWidth="47.0" text="RGO workforce"/>
-                    <TableColumn fx:id="colWorkForceFactory" prefWidth="47.0" text="Industrial workforce"/>
-                    <TableColumn fx:id="colEmployment" prefWidth="18.0" text="Employed"/>
-                    <TableColumn prefWidth="137.0" text="Unemployment">
-                        <columns>
-                            <TableColumn fx:id="colUnemploymentRate" text="RGO"/>
-                            <TableColumn fx:id="colUnemploymentRateFactory" text="Factory"/>
-                        </columns>
-                    </TableColumn>
-                </columns>
-            </TableView>
+        <TableView id="table" fx:id="mainTable" tableMenuButtonVisible="true"
+                   VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="colImage" prefWidth="30" text="Flag"/>
+                <TableColumn fx:id="colCountry" prefWidth="200" text="Country"/>
+                <TableColumn id="colPopulation" fx:id="colPopulation" prefWidth="100" text="Population"/>
+                <TableColumn fx:id="colConsumption" prefWidth="85.0" text="Consumption"/>
+                <TableColumn fx:id="colExport" prefWidth="85.0" text="Export"/>
+                <TableColumn fx:id="colImport" prefWidth="84.0" text="Import"/>
+                <TableColumn fx:id="colActualSupply" prefWidth="95.0" text="Actual supply"/>
+                <TableColumn fx:id="colGdp" prefWidth="95.0" text="GDP"/>
+                <TableColumn fx:id="colGDPPer" prefWidth="100.0" text="GDP per capita"/>
+                <TableColumn fx:id="colGDPPlace" prefWidth="58.0" text="GDP #"/>
+                <TableColumn fx:id="colGDPPart" prefWidth="85.0" text="GDP %"/>
+                <TableColumn fx:id="colGoldIncome" prefWidth="85.0" text="Gold income"/>
+                <TableColumn fx:id="colWorkForceRgo" prefWidth="47.0" text="RGO workforce"/>
+                <TableColumn fx:id="colWorkForceFactory" prefWidth="47.0" text="Industrial workforce"/>
+                <TableColumn fx:id="colEmployment" prefWidth="18.0" text="Employed"/>
+                <TableColumn prefWidth="137.0" text="Unemployment">
+                    <columns>
+                        <TableColumn fx:id="colUnemploymentRate" text="RGO"/>
+                        <TableColumn fx:id="colUnemploymentRateFactory" text="Factory"/>
+                    </columns>
+                </TableColumn>
+            </columns>
+        </TableView>
 
-            <Label alignment="CENTER"
-                   text="Distributing under BSD License. Used  EugFile: an open-source Java library"
-                   VBox.vgrow="NEVER"/>
-        </VBox>
+        <Label alignment="CENTER" prefHeight="21.0" prefWidth="1366.0" text="Victoria 2 save game economy analyzer (inspired by Lionhunter's war analyzer)" />
+        <Label alignment="CENTER" prefHeight="21.0" prefWidth="1369.0" text="Distributing under BSD License. Used  EugFile: an open-source Java library" />
+    </VBox>
 
-        <StackPane fx:id="progressWrap" visible="false" AnchorPane.bottomAnchor="0"
-                   AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.topAnchor="0">
-            <ProgressIndicator fx:id="piLoad" progress="-0.03" maxWidth="152.0" StackPane.alignment="CENTER"/>
+    <StackPane fx:id="progressWrap" visible="false"
+               AnchorPane.bottomAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.leftAnchor="0"
+               AnchorPane.topAnchor="0">
+<ProgressIndicator fx:id="piLoad" progress="-0.03" maxWidth="152.0" StackPane.alignment="CENTER"/>
         </StackPane>
 
-    </AnchorPane>
-</VBox>
+    </AnchorPane></VBox>

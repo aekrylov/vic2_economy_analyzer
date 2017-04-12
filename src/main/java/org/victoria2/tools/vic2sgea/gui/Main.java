@@ -6,16 +6,16 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import org.victoria2.tools.vic2sgea.main.Country;
-import org.victoria2.tools.vic2sgea.main.Product;
+import org.victoria2.tools.vic2sgea.entities.Country;
+import org.victoria2.tools.vic2sgea.entities.Product;
 import org.victoria2.tools.vic2sgea.main.Properties;
 import org.victoria2.tools.vic2sgea.main.Report;
 
 import java.io.IOException;
-
+  
 public class Main extends Application {
 
-    private static Stage productsWindow;
+    private static Stage productListWindow;
 
     public static void main(String[] args) {
         launch(args);
@@ -37,9 +37,6 @@ public class Main extends Application {
         stage.show();
         stage.getIcons().add(new Image("/flags/EST.png")); /* Cause I'm Estonian, thats why */
 
-        // Throws error when user cancels selection
-
-
         try {
             FXMLLoader productListLoader = new FXMLLoader(getClass().getResource("/gui/ProductList.fxml"));
             root = productListLoader.load();
@@ -47,10 +44,10 @@ public class Main extends Application {
 
             windowController.setProductListController(productListLoader.getController());
 
-            productsWindow = new Stage();
-            productsWindow.setTitle("Product list window");
-            productsWindow.getIcons().add(new Image("/flags/EST.png"));  //Cause I'm Estonian, thats why
-            productsWindow.setScene(new Scene(root));
+            productListWindow = new Stage();
+            productListWindow.setTitle("Product list");
+            productListWindow.getIcons().add(new Image("/flags/EST.png"));  //Cause I'm Estonian, thats why
+            productListWindow.setScene(new Scene(root));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -79,10 +76,27 @@ public class Main extends Application {
     }
 
     public static void showProductList() {
-        productsWindow.show();
+        productListWindow.show();
     }
 
     public static void hideProductList() {
-        productsWindow.hide();
+        productListWindow.hide();
+    }
+
+    public static void showWatcherWindow() {
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/gui/Watchers.fxml"));
+        Parent root;
+        try {
+            root = loader.load();
+            root.getStylesheets().add("/gui/style.css");
+
+            Stage window = new Stage();
+            window.setTitle("Watchers");
+            window.setScene(new Scene(root));
+            window.show();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
