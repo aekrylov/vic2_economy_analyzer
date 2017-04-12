@@ -1,6 +1,7 @@
 package org.victoria2.tools.vic2sgea.main;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.Properties;
 
 
@@ -11,6 +12,10 @@ public class PathKeeper {
     static public String SAVE_PATH;
     static public String LOCALISATION_PATH;
     static public String MOD_PATH;
+    // next 2 used in watcher
+    static public String HISTORY_FILE;
+    ///meaning path to a FOLDER with savefiles 
+    //static public String SAVE_DIR;
 
     /**
      * Checking if the path file exists. If not, attempts to construct
@@ -85,6 +90,8 @@ public class PathKeeper {
             if (LOCALISATION_PATH != null) props.setProperty("gamePatch", LOCALISATION_PATH);
             if (SAVE_PATH != null) props.setProperty("saveGame", SAVE_PATH);
             if (MOD_PATH != null) props.setProperty("modPath", MOD_PATH);
+            if (HISTORY_FILE != null) props.setProperty("historyFile", HISTORY_FILE);
+            //if (SAVE_DIR != null) props.setProperty("saveGameFolder", SAVE_DIR);
             try {
                 props.store(out, null);
 
@@ -116,6 +123,8 @@ public class PathKeeper {
             LOCALISATION_PATH = props.getProperty("gamePatch");
             SAVE_PATH = props.getProperty("saveGame");
             MOD_PATH = props.getProperty("modPath");
+            HISTORY_FILE = props.getProperty("historyFile");
+            //SAVE_DIR = props.getProperty("saveGameFolder");            
 
         } catch (UnsupportedEncodingException | FileNotFoundException e1) {
             // TODO Auto-generated catch block
