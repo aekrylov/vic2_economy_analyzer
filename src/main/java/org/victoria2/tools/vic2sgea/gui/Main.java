@@ -10,6 +10,7 @@ import org.victoria2.tools.vic2sgea.entities.Country;
 import org.victoria2.tools.vic2sgea.entities.Product;
 import org.victoria2.tools.vic2sgea.main.Properties;
 import org.victoria2.tools.vic2sgea.main.Report;
+import org.victoria2.tools.vic2sgea.watcher.WatcherManager;
 
 import java.io.IOException;
   
@@ -53,6 +54,11 @@ public class Main extends Application {
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public void stop() throws Exception {
+        WatcherManager.getInstance().getWatcherList().forEach(Thread::interrupt);
     }
 
     public static void showCountry(Report report, Country country) {
