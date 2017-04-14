@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 import org.victoria2.tools.vic2sgea.main.PathKeeper;
 import org.victoria2.tools.vic2sgea.watcher.Watcher;
 import org.victoria2.tools.vic2sgea.watcher.WatcherManager;
@@ -42,8 +43,8 @@ public class WatchersController extends BaseController implements Initializable 
     private WatcherManager watcherManager = WatcherManager.getInstance();
 
     public void startWatcher() {
-        Path historyFile = Paths.get(fpHistoryFile.getPath());
-        Path saveDir = Paths.get(fpSaveDir.getPath());
+        Path historyFile = fpHistoryFile.getPath();
+        Path saveDir = fpSaveDir.getPath();
 
         try {
             Watcher watcher = new Watcher(historyFile, saveDir);
@@ -57,7 +58,7 @@ public class WatchersController extends BaseController implements Initializable 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         String savePath = PathKeeper.SAVE_PATH;
-        fpSaveDir.setPath(Paths.get(savePath).getParent().toString());
+        fpSaveDir.setPath(Paths.get(savePath).getParent());
         colHistoryFile.setCellValueFactory(new PropertyValueFactory<>("historyFile"));
         colSaveDir.setCellValueFactory(new PropertyValueFactory<>("saveDir"));
 
@@ -82,6 +83,23 @@ public class WatchersController extends BaseController implements Initializable 
         }
     }
 
+    static class ExportWatcherButton extends Button {
+
+        private Watcher watcher;
+
+        public ExportWatcherButton(Watcher watcher) {
+            super("Export");
+            this.watcher = watcher;
+        }
+
+        @Override
+        public void fire() {
+            super.fire();
+            //show export dialog
+            Main.showExportWindow(watcher.getWatch());
+        }
+    }
+
     static class WatcherActionCell extends TableCell<Watcher, Void> {
 
         @Override
@@ -90,7 +108,7 @@ public class WatchersController extends BaseController implements Initializable 
             if (!empty) {
                 Watcher watcher = (Watcher) getTableRow().getItem();
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                setGraphic(new RemoveWatcherButton(watcher));
+                setGraphic(new HBox(new ExportWatcherButton(watcher), new RemoveWatcherButton(watcher)));
             }
         }
     }

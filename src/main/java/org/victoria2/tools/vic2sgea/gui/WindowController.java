@@ -206,9 +206,9 @@ public class WindowController extends BaseController implements Initializable {
                 //float startTime=0;
 
                 try {
-                    String savePath = fpSaveGame.getPath();
-                    String modPath = fpModPath.getPath();
-                    String gamePath = fpGamePath.getPath();
+                    String savePath = fpSaveGame.getPath().toString();
+                    String modPath = fpModPath.getPath().toString();
+                    String gamePath = fpGamePath.getPath().toString();
 
                     PathKeeper.SAVE_PATH = savePath;
                     PathKeeper.MOD_PATH = modPath;
