@@ -30,6 +30,8 @@ public class ChartsController extends BaseController {
     protected final GridPane grid;
     protected final Report report;
 
+    public static final int NUM_SLICES = 25;
+
     private int chartCount = 0;
 
     public ChartsController(Report report) {
@@ -64,6 +66,15 @@ public class ChartsController extends BaseController {
     protected PieChart addChart(List<PieChart.Data> pieChartData, int i, int j, String title,
                                 Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
         pieChartData.sort(Comparator.comparing(PieChart.Data::getPieValue).reversed());
+
+        double totalValue = pieChartData.stream().mapToDouble(PieChart.Data::getPieValue).sum();
+        pieChartData = pieChartData.subList(0, Math.min(NUM_SLICES, pieChartData.size()));
+
+        double topValue = pieChartData.stream().mapToDouble(PieChart.Data::getPieValue).sum();
+        if(totalValue - topValue > .001) {
+            pieChartData.add(new PieChart.Data("Others", totalValue - topValue));
+        }
+
         final PieChart chart = new PieChart(FXCollections.observableList(pieChartData));
 
         chart.setStartAngle(90);
@@ -80,15 +91,7 @@ public class ChartsController extends BaseController {
 
         grid.add(subPane, i, j);
 
-        Double totalValue = chart.getData().stream()
-                .map(PieChart.Data::getPieValue)
-                .reduce(0., (d1, d2) -> d1 + d2);
-
         for (final PieChart.Data data : chart.getData()) {
-            if (data.getPieValue() / totalValue < .001) {
-                data.getNode().setVisible(false);
-                continue;
-            }
             data.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED,
                     e -> caption.setText(onEnter.apply(data)));
             data.getNode().addEventHandler(MouseEvent.MOUSE_CLICKED,
@@ -97,17 +100,7 @@ public class ChartsController extends BaseController {
 
         return chart;
     }
-
-    /*protected PieChart addChart(List<PieChart.Data> pieChartData, String title,
-                                Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
-        int row = (chartCount / 2);
-        int column = chartCount % 2;
-
-        chartCount++;
-        return addChart(pieChartData, column, row, title, onEnter, onClick);
-
-    }*/
-
+    
     protected PieChart addChart(List<ChartSlice> slices, String title,
                                 Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
         int row = (chartCount / 2);
@@ -119,11 +112,7 @@ public class ChartsController extends BaseController {
                 .map(chartSlice -> chartSlice.data)
                 .collect(Collectors.toList());
 
-        PieChart chart = addChart(pieChartData, column, row, title, onEnter, onClick);
-        //todo ugly colors
-        //slices.forEach(ChartSlice::setColor);
-
-        return chart;
+        return addChart(pieChartData, column, row, title, onEnter, onClick);
 
     }
 

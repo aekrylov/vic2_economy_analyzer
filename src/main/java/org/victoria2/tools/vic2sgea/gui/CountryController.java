@@ -26,9 +26,7 @@ public class CountryController extends ChartsController {
                     double value = getter.apply(productStorage) * productStorage.getPrice();
                     Color color = productStorage.product.getColor();
 
-                    ChartSlice slice = new ChartSlice(name, value, color);
-
-                    return slice;
+                    return new ChartSlice(name, value, color);
                 })
                 .collect(Collectors.toList());
 
