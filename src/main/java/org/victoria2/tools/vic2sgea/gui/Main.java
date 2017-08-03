@@ -58,7 +58,7 @@ public class Main extends Application {
 
     @Override
     public void stop() throws Exception {
-        WatcherManager.getInstance().getWatcherList().forEach(Thread::interrupt);
+        WatcherManager.getInstance().stopWatching();
     }
 
     public static void showCountry(Report report, Country country) {

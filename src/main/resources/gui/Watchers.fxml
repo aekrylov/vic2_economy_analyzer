@@ -2,22 +2,23 @@
 
 
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.*?>
 <?import org.victoria2.tools.vic2sgea.gui.FilePrompt?>
 <VBox xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.victoria2.tools.vic2sgea.gui.WatchersController" spacing="10" styleClass="window-root">
     <FilePrompt promptType="FILE" fx:id="fpHistoryFile" labelText="History file: "/>
     <FilePrompt promptType="DIR" fx:id="fpSaveDir" labelText="Save games directory: " labelWidth="170."/>
 
-    <Button fx:id="btnStart" text="Start" onAction="#startWatcher"/>
+    <Button text="Start" onAction="#startWatcher"/>
 
+    <Label text="Active watcher info:" styleClass="h2" />
+    <GridPane vgap="15" hgap="5">
+        <Label text="Active file:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+        <Label fx:id="activeWatcherFile" GridPane.rowIndex="0" GridPane.columnIndex="1" />
 
-    <TableView fx:id="tvWatcherList" VBox.vgrow="ALWAYS">
-        <columns>
-            <TableColumn fx:id="colHistoryFile" text="History file"/>
-            <TableColumn fx:id="colSaveDir" text="Save files dir"/>
-            <TableColumn fx:id="colStatus" text="Status"/>
-            <TableColumn fx:id="colActions" text="Actions"/>
-        </columns>
-    </TableView>
+        <Label text="Watching dir:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+        <Label fx:id="activeWatcherSaveDir" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+    </GridPane>
+    <Button text="Stop" onAction="#stopWatcher"/>
+
 </VBox>

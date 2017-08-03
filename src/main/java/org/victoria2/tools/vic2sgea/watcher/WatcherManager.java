@@ -3,6 +3,9 @@ package org.victoria2.tools.vic2sgea.watcher;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 /**
  * Created by anth on 12.02.2017.
  * <p>
@@ -11,6 +14,7 @@ import javafx.collections.ObservableList;
 public class WatcherManager {
 
     private static WatcherManager instance;
+    private Watcher activeWatcher;
 
     public static WatcherManager getInstance() {
         if (instance == null)
@@ -23,18 +27,21 @@ public class WatcherManager {
     private WatcherManager() {
     }
 
-    public void add(Watcher watcher) {
-        watcherList.add(watcher);
-        watcher.start();
+    public void startWatching(Path historyFile, Path saveDir) throws IOException {
+        if(activeWatcher != null)
+            activeWatcher.interrupt();
+        activeWatcher = new Watcher(historyFile, saveDir);
+        activeWatcher.start();
     }
 
-    public void remove(Watcher watcher) {
-        watcherList.remove(watcher);
-        if (watcher != null)
-            watcher.interrupt();
+    public void stopWatching() {
+        if(activeWatcher != null)
+            activeWatcher.interrupt();
+        activeWatcher = null;
     }
 
-    public ObservableList<Watcher> getWatcherList() {
-        return watcherList;
+    public Watcher getActiveWatcher() {
+        return activeWatcher;
     }
+
 }

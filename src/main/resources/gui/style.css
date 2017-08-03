@@ -25,3 +25,8 @@ Tonis Kasekamp
 .window-root {
     -fx-padding: 10px;
 }
+
+.h2 {
+    -fx-font-size: 1.53em;
+    -fx-font-weight: bold;
+}

@@ -8,14 +8,15 @@ import java.util.Map;
  * <p>
  * Container class for a history file
  */
-public class Watch {
+public class WorldHistory {
 
-    private Map<String, WorldState> history = new HashMap<>();
+    private final Map<String, WorldState> history;
 
-    public Watch() {
+    public WorldHistory() {
+        this.history = new HashMap<>();
     }
 
-    public Watch(Map<String, WorldState> history) {
+    public WorldHistory(Map<String, WorldState> history) {
         this.history = history;
     }
 
