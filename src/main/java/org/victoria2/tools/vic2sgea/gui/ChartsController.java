@@ -31,6 +31,7 @@ public class ChartsController extends BaseController {
     protected final Report report;
 
     public static final int NUM_SLICES = 25;
+    public static final double VALUE_THRESHOLD = 0.01;
 
     private int chartCount = 0;
 
@@ -55,7 +56,7 @@ public class ChartsController extends BaseController {
     /**
      * Adds chart to grid
      *
-     * @param pieChartData chart data
+     * @param slices chart data
      * @param i            column index
      * @param j            row index
      * @param title        chart title
@@ -63,17 +64,25 @@ public class ChartsController extends BaseController {
      * @param onClick      consumer called when an item is clicked
      * @return the created chart
      */
-    protected PieChart addChart(List<PieChart.Data> pieChartData, int i, int j, String title,
-                                Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
-        pieChartData.sort(Comparator.comparing(PieChart.Data::getPieValue).reversed());
+    private PieChart addChart(List<ChartSlice> slices, int i, int j, String title,
+                              Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
+        slices.sort(Comparator.comparing(ChartSlice::getValue).reversed());
 
-        double totalValue = pieChartData.stream().mapToDouble(PieChart.Data::getPieValue).sum();
-        pieChartData = pieChartData.subList(0, Math.min(NUM_SLICES, pieChartData.size()));
+        double totalValue = slices.stream().mapToDouble(ChartSlice::getValue).sum();
+        slices = slices.stream()
+                .filter(data -> data.getValue() / totalValue > VALUE_THRESHOLD)
+                .limit(NUM_SLICES)
+                .collect(Collectors.toList());
 
-        double topValue = pieChartData.stream().mapToDouble(PieChart.Data::getPieValue).sum();
+        double topValue = slices.stream().mapToDouble(ChartSlice::getValue).sum();
         if(totalValue - topValue > .001) {
-            pieChartData.add(new PieChart.Data("Others", totalValue - topValue));
+            ChartSlice others = new ChartSlice("Others", totalValue - topValue, Color.GRAY);
+            slices.add(others);
         }
+
+        List<PieChart.Data> pieChartData = slices.stream()
+                .map(chartSlice -> chartSlice.data)
+                .collect(Collectors.toList());
 
         final PieChart chart = new PieChart(FXCollections.observableList(pieChartData));
 
@@ -90,6 +99,8 @@ public class ChartsController extends BaseController {
         subPane.add(caption, 0, 1);
 
         grid.add(subPane, i, j);
+
+        slices.forEach(ChartSlice::applyColor);
 
         for (final PieChart.Data data : chart.getData()) {
             data.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED,
@@ -108,11 +119,7 @@ public class ChartsController extends BaseController {
 
         chartCount++;
 
-        List<PieChart.Data> pieChartData = slices.stream()
-                .map(chartSlice -> chartSlice.data)
-                .collect(Collectors.toList());
-
-        return addChart(pieChartData, column, row, title, onEnter, onClick);
+        return addChart(slices, column, row, title, onEnter, onClick);
 
     }
 
@@ -122,7 +129,7 @@ public class ChartsController extends BaseController {
 
     static class ChartSlice {
         private Color color;
-        private PieChart.Data data;
+        private final PieChart.Data data;
 
         public ChartSlice(String name, double value, Color color) {
             this(name, value);
@@ -133,11 +140,19 @@ public class ChartsController extends BaseController {
             data = new PieChart.Data(name, value);
         }
 
-        void setColor() {
+        public void applyColor() {
             if (color == null)
                 return;
             String webColor = Wrapper.toWebColor(color);
             data.getNode().setStyle("-fx-pie-color: " + webColor);
+        }
+
+        public String getName() {
+            return data.getName();
+        }
+
+        public double getValue() {
+            return data.getPieValue();
         }
     }
 }

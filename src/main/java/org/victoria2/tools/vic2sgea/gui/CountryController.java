@@ -26,7 +26,8 @@ public class CountryController extends ChartsController {
                     double value = getter.apply(productStorage) * productStorage.getPrice();
                     Color color = productStorage.product.getColor();
 
-                    return new ChartSlice(name, value, color);
+                    return new ChartSlice(name, value);
+                    //return new ChartSlice(name, value, color);
                 })
                 .collect(Collectors.toList());
 
@@ -39,7 +40,11 @@ public class CountryController extends ChartsController {
 
         Function<PieChart.Data, String> onEnter = data -> {
             ProductStorage productStorage = storageMap.get(data.getName());
-            return String.format("%s: %.1f£ (%.1f items)", data.getName(), data.getPieValue(), getter.apply(productStorage));
+            if(productStorage == null) {
+                return String.format("%s: %.1f£", data.getName(), data.getPieValue());
+            }
+            double items = getter.apply(productStorage);
+            return String.format("%s: %.1f£ (%.1f items)", data.getName(), data.getPieValue(), items);
         };
 
         String title = String.format("%s of %s (%.1f£)", chartName, country.getOfficialName(), getter.apply(country));
