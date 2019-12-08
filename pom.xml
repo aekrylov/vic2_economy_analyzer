@@ -52,7 +52,10 @@
                     <jvmArgs>
                         <jvmArg>-Xmx1024m</jvmArg>
                     </jvmArgs>
-                    <updateExistingJar>true</updateExistingJar> <!-- need this for shade plugin to work -->
+                    <!-- following options are needed to build a fat jar -->
+                    <updateExistingJar>true</updateExistingJar>
+                    <skipCopyingDependencies>true</skipCopyingDependencies>
+                    <useLibFolderContentForManifestClasspath>false</useLibFolderContentForManifestClasspath>
                 </configuration>
             </plugin>
             
