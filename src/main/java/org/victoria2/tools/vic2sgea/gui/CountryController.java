@@ -1,7 +1,6 @@
 package org.victoria2.tools.vic2sgea.gui;
 
 import javafx.scene.chart.PieChart;
-import javafx.scene.paint.Color;
 import org.victoria2.tools.vic2sgea.entities.Country;
 import org.victoria2.tools.vic2sgea.entities.EconomySubject;
 import org.victoria2.tools.vic2sgea.entities.Product;
@@ -24,7 +23,6 @@ public class CountryController extends ChartsController {
                 .map(productStorage -> {
                     String name = productStorage.product.getName();
                     double value = getter.apply(productStorage) * productStorage.getPrice();
-                    Color color = productStorage.product.getColor();
 
                     return new ChartSlice(name, value);
                     //return new ChartSlice(name, value, color);
