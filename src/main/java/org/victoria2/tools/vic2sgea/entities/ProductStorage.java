@@ -57,15 +57,13 @@ public class ProductStorage extends EconomySubject {
         float thrownToMarket = (totalSupply - soldDomestic);
         if (thrownToMarket <= 0)
             sold = totalSupply;
-        else {
-            if (product.name.equalsIgnoreCase("precious_metal"))
-                sold = totalSupply;
-            else if (product.worldmarketPool > 0)
-                //todo assuming here that for every country, percentage of goods sold on the world market is the same
-                sold = soldDomestic + thrownToMarket * product.actualSoldWorld / product.worldmarketPool;
-            else
-                sold = soldDomestic;
-        }
+        else if (product.name.equalsIgnoreCase("precious_metal"))
+            sold = totalSupply;
+        else if (product.worldmarketPool > 0)
+            //todo assuming here that for every country, percentage of goods sold on the world market is the same
+            sold = soldDomestic + thrownToMarket * product.actualSoldWorld / product.worldmarketPool;
+        else
+            sold = soldDomestic;
 
         gdp += sold;
 

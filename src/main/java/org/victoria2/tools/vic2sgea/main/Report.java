@@ -244,15 +244,12 @@ public class Report {
 
         fieldMap.put("worldmarket_pool", Product::setWorldmarketPool);
 
-        for (Map.Entry<String, BiConsumer<Product, Float>> entry : fieldMap.entrySet()) {
-            GenericObject object = worldmarket.getChild(entry.getKey());
-            BiConsumer<Product, Float> setter = entry.getValue();
-
-            List<ObjectVariable> list = object.values;
-            for (ObjectVariable var : list) {
+        fieldMap.forEach((key, setter) -> {
+            GenericObject object = worldmarket.getChild(key);
+            for (ObjectVariable var : object.values) {
                 setter.accept(findProductOrCreate(var.getName()), Float.valueOf(var.getValue()));
             }
-        }
+        });
     }
 
     /**
@@ -281,7 +278,7 @@ public class Report {
             }
         }
 
-        //count factory workers
+        //process factories
         for (GenericObject stateObject : countryObject.getChildren("state")) {
 
             for (GenericObject building : stateObject.getChildren("state_buildings")) {
@@ -297,6 +294,7 @@ public class Report {
                     }
 
                     country.addEmploymentFactory(ReportHelpers.getEmployeeCount(building));
+                    country.wagesFactory += building.getDouble("pops_paychecks");
                 }
             }
 
@@ -341,6 +339,8 @@ public class Report {
                     //exact rgo output is not shown, we can guess based on last_income
                     Product output = findProduct(object.getString("goods_type"));
                     double lastIncome = object.getDouble("last_income") / 1000;
+
+                    owner.wagesRgo += lastIncome;
 
                     // gold income calculation
                     if (output.getName().equalsIgnoreCase("precious_metal"))
