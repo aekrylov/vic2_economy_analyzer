@@ -7,7 +7,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import org.victoria2.tools.vic2sgea.main.PathKeeper;
-import org.victoria2.tools.vic2sgea.watcher.Watch;
 import org.victoria2.tools.vic2sgea.watcher.Watcher;
 import org.victoria2.tools.vic2sgea.watcher.WatcherManager;
 
@@ -15,7 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -99,7 +97,7 @@ public class WatchersController extends BaseController implements Initializable 
         public void fire() {
             super.fire();
             //show export dialog
-            Main.showExportWindow(watcher.getWatch());
+            Main.showExportWindow(watcher);
         }
     }
 
@@ -117,7 +115,7 @@ public class WatchersController extends BaseController implements Initializable 
             super.fire();
 
             FileChooser chooser = new FileChooser();
-            PathKeeper.getSavePath().ifPresent(p -> chooser.setInitialDirectory(p.toFile()));
+            chooser.setInitialDirectory(watcher.getSaveDir().toFile());
 
             List<File> files = chooser.showOpenMultipleDialog(null);
             if (files != null) {

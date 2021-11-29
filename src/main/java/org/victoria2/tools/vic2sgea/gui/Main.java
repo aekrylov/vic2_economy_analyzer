@@ -10,7 +10,7 @@ import org.victoria2.tools.vic2sgea.entities.Country;
 import org.victoria2.tools.vic2sgea.entities.Product;
 import org.victoria2.tools.vic2sgea.main.Properties;
 import org.victoria2.tools.vic2sgea.main.Report;
-import org.victoria2.tools.vic2sgea.watcher.Watch;
+import org.victoria2.tools.vic2sgea.watcher.Watcher;
 import org.victoria2.tools.vic2sgea.watcher.WatcherManager;
 
 import java.io.IOException;
@@ -94,9 +94,9 @@ public class Main extends Application {
         showWindow("/gui/Watchers.fxml", "Watchers");
     }
 
-    public static void showExportWindow(Watch watch) {
+    public static void showExportWindow(Watcher watcher) {
         FXMLLoader loader = showWindow("/gui/Export.fxml", "Export");
-        ((ExportController) loader.getController()).setWatch(watch);
+        ((ExportController) loader.getController()).setWatcher(watcher);
     }
 
     private static FXMLLoader showWindow(String fxmlPath, String title) {
