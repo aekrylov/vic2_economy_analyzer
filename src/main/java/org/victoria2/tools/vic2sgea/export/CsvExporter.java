@@ -1,10 +1,10 @@
-package org.victoria2.tools.vic2sgea.watcher;
+package org.victoria2.tools.vic2sgea.export;
 
-import org.supercsv.cellprocessor.FmtDate;
 import org.supercsv.cellprocessor.ift.CellProcessor;
 import org.supercsv.io.dozer.CsvDozerBeanWriter;
 import org.supercsv.prefs.CsvPreference;
 import org.victoria2.tools.vic2sgea.entities.Country;
+import org.victoria2.tools.vic2sgea.watcher.Watch;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,23 +23,23 @@ public class CsvExporter {
 
     public static void exportCountry(Watch watch, String tag, Path filename) throws IOException {
 
-        final String[] fieldMapping = new String[] {
-                "date",
-                "country.gdp",
-                "country.population",
-                "country.GDPPart"
-        };
+        List<String> fields = ExportUtils.COUNTRY_FIELDS.keySet().stream()
+                .map(key -> "country." + key)
+                .sorted()
+                .collect(Collectors.toList());
+        fields.add(0, "date");
 
-        final CellProcessor[] processors = new CellProcessor[] {
-                new FmtDate("yyyy.MM.dd"),
-                null,
-                null,
-                null
-        };
+        final CellProcessor[] processors = fields.stream()
+                .map(f -> null)
+                .toArray(CellProcessor[]::new);
 
         CsvDozerBeanWriter writer = new CsvDozerBeanWriter(Files.newBufferedWriter(filename), CsvPreference.STANDARD_PREFERENCE);
-        writer.configureBeanMapping(CountryCsvBean.class, fieldMapping);
-        writer.writeHeader(fieldMapping);
+        writer.configureBeanMapping(CountryCsvBean.class, fields.toArray(new String[0]));
+        writer.writeHeader(
+                fields.stream()
+                        .map(f -> ExportUtils.COUNTRY_FIELDS.getOrDefault(f, f))
+                        .toArray(String[]::new)
+        );
 
         List<CountryCsvBean> items = watch.getHistory().entrySet().stream()
                 .map(entry -> new CountryCsvBean(
@@ -55,7 +55,7 @@ public class CsvExporter {
                 .sorted(Comparator.comparing(CountryCsvBean::getDate))
                 .collect(Collectors.toList());
 
-        for(CountryCsvBean item: items) {
+        for (CountryCsvBean item : items) {
             writer.write(item, processors);
         }
         writer.close();
@@ -87,7 +87,7 @@ public class CsvExporter {
         final CellProcessor[] processors = fields.stream().map(f -> null)
                 .toArray(CellProcessor[]::new);
 
-        for(CountryHistoryCsvBean item: items) {
+        for (CountryHistoryCsvBean item : items) {
             writer.write(item, processors);
         }
         writer.close();

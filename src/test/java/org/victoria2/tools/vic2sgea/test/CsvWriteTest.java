@@ -1,6 +1,6 @@
 package org.victoria2.tools.vic2sgea.test;
 
-import org.victoria2.tools.vic2sgea.watcher.CsvExporter;
+import org.victoria2.tools.vic2sgea.export.CsvExporter;
 import org.victoria2.tools.vic2sgea.watcher.Watcher;
 
 import java.io.IOException;
