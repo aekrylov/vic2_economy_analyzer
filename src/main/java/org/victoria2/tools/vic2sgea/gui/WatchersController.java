@@ -57,8 +57,7 @@ public class WatchersController extends BaseController implements Initializable 
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        String savePath = PathKeeper.SAVE_PATH;
-        fpSaveDir.setPath(Paths.get(savePath).getParent());
+        PathKeeper.getSavePath().ifPresent(p -> fpSaveDir.setPath(p.getParent()));
         colHistoryFile.setCellValueFactory(new PropertyValueFactory<>("historyFile"));
         colSaveDir.setCellValueFactory(new PropertyValueFactory<>("saveDir"));
 

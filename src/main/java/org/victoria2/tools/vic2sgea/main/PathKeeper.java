@@ -1,6 +1,9 @@
 package org.victoria2.tools.vic2sgea.main;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.Properties;
 
 
@@ -8,15 +11,33 @@ import java.util.Properties;
  * Class for handling savegame path reading, finding and loading from a file
  */
 public class PathKeeper {
-    static public String SAVE_PATH;
-    static public String LOCALISATION_PATH;
-    static public String MOD_PATH;
+    private static String SAVE_PATH;
+    private static String LOCALISATION_PATH;
+    private static String MOD_PATH;
+
+    private static Optional<Path> toOptional(String path) {
+        return Optional.ofNullable(path)
+                .filter(s -> !s.isEmpty())
+                .map(Paths::get);
+    }
+
+    public static Optional<Path> getSavePath() {
+        return toOptional(SAVE_PATH);
+    }
+
+    public static Optional<Path> getLocalisationPath() {
+        return toOptional(LOCALISATION_PATH);
+    }
+
+    public static Optional<Path> getModPath() {
+        return toOptional(MOD_PATH);
+    }
 
     /**
      * Checking if the path file exists. If not, attempts to construct
      * the default save game paths. If the file exist, reads from it.
      */
-    public static void checkPaths() {
+    public static void init() {
         if ((new File("./path.txt")).exists()) {
             load();
         } else {
@@ -69,6 +90,13 @@ public class PathKeeper {
         }
     }
 
+    public static void save(Path savePath, Path localisationPath, Path modPath) {
+        PathKeeper.SAVE_PATH = savePath != null ? savePath.toString() : null;
+        PathKeeper.LOCALISATION_PATH = localisationPath != null ? localisationPath.toString() : null;
+        PathKeeper.MOD_PATH = modPath != null ? modPath.toString() : null;
+        save();
+    }
+
     /**
      * This method saves the paths so the user does not have
      * to choose the file every time. Saved after every loading of a savefile
@@ -76,15 +104,15 @@ public class PathKeeper {
      *
      * @throws IOException
      */
-    public static void save() {
+    private static void save() {
 
         Properties props = new Properties();
         BufferedWriter out;
         try {
             out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("path.txt"), "UTF-8"));
-            if (LOCALISATION_PATH != null) props.setProperty("gamePatch", LOCALISATION_PATH);
-            if (SAVE_PATH != null) props.setProperty("saveGame", SAVE_PATH);
-            if (MOD_PATH != null) props.setProperty("modPath", MOD_PATH);
+            getLocalisationPath().ifPresent(p -> props.setProperty("gamePatch", p.toString()));
+            getSavePath().ifPresent(p -> props.setProperty("saveGame", p.toString()));
+            getModPath().ifPresent(p -> props.setProperty("modPath", p.toString()));
             try {
                 props.store(out, null);
 

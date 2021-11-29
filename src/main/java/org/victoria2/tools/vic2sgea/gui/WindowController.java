@@ -20,6 +20,7 @@ import org.victoria2.tools.vic2sgea.main.TableRowDoubleClickFactory;
 import org.victoria2.tools.vic2sgea.main.Wrapper;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.ResourceBundle;
 
 /**
@@ -160,10 +161,11 @@ public class WindowController extends BaseController implements Initializable {
             e.printStackTrace();
             errorAlert(e, "Couldn't load config");
         }*/
-        PathKeeper.checkPaths();
-        fpGamePath.setPath(PathKeeper.LOCALISATION_PATH);
-        fpSaveGame.setPath(PathKeeper.SAVE_PATH);
-        fpModPath.setPath(PathKeeper.MOD_PATH);
+        PathKeeper.init();
+
+        PathKeeper.getSavePath().ifPresent(fpSaveGame::setPath);
+        PathKeeper.getLocalisationPath().ifPresent(fpGamePath::setPath);
+        PathKeeper.getModPath().ifPresent(fpModPath::setPath);
 
         lblPlayer.setOnMouseClicked(e -> {
             if (report != null) {
@@ -198,16 +200,13 @@ public class WindowController extends BaseController implements Initializable {
                 //float startTime=0;
 
                 try {
-                    String savePath = fpSaveGame.getPath().toString();
-                    String modPath = fpModPath.getPath().toString();
-                    String gamePath = fpGamePath.getPath().toString();
+                    Path savePath = fpSaveGame.getPath();
+                    Path modPath = fpModPath.getPath();
+                    Path gamePath = fpGamePath.getPath();
 
-                    PathKeeper.SAVE_PATH = savePath;
-                    PathKeeper.MOD_PATH = modPath;
-                    PathKeeper.LOCALISATION_PATH = gamePath;
-                    PathKeeper.save();
+                    PathKeeper.save(savePath, gamePath, modPath);
 
-                    report = new Report(savePath, gamePath, modPath);
+                    report = new Report(savePath.toString(), gamePath.toString(), modPath.toString());
 
                     countryTableContent.setAll(report.getCountryList());
                     productListController.setReport(report);
