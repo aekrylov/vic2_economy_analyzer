@@ -17,7 +17,7 @@ import java.util.*;
  */
 public class ReportHelpers {
 
-    public static final List<String> POPS_RGO = Arrays.asList("farmers", "labourers", "slaves");
+    public static final List<String> POPS_RGO = Arrays.asList("farmers", "labourers", "slaves", "serfs");
     public static final List<String> POPS_FACTORY = Arrays.asList("craftsmen", "clerks");
     public static final List<String> POPS_ARTISANS = Arrays.asList("artisans");
 
