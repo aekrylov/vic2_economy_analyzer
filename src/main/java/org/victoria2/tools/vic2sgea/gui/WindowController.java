@@ -310,7 +310,7 @@ class NiceNumberConverter<T extends Number> extends StringConverter<T> {
 
     @Override
     public String toString(T object) {
-        return String.format("%.2f", object.doubleValue());
+        return String.format("%.3f", object.doubleValue());
     }
 
     //don't need this

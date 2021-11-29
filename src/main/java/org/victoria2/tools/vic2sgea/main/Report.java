@@ -294,7 +294,8 @@ public class Report {
                     }
 
                     country.addEmploymentFactory(ReportHelpers.getEmployeeCount(building));
-                    country.wagesFactory += building.getDouble("pops_paychecks");
+                    // money amounts in factories are stored multiplied by 1000 for some reason
+                    country.wagesFactory += building.getDouble("pops_paychecks") / 1000;
                 }
             }
 
