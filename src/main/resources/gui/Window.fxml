@@ -15,6 +15,12 @@
             -->
             <MenuItem text="Manage watchers" onAction="#onWatcherWindow"/>
         </Menu>
+        <Menu text="Export">
+            <!--
+                        <MenuItem text="New history file..." onAction="#createNewHistory"/>
+            -->
+            <MenuItem text="Export history form save files" onAction="#onManualExport"/>
+        </Menu>
     </MenuBar>
 
     <AnchorPane VBox.vgrow="ALWAYS">

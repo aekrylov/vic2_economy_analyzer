@@ -2,7 +2,6 @@ package org.victoria2.tools.vic2sgea.watcher;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.victoria2.tools.vic2sgea.main.Report;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -44,9 +43,7 @@ public class Watcher extends Thread {
     }
 
     public void addState(Path savePath) {
-        Report report = new Report(savePath.toString(), null, null);
-        WorldState state = new WorldState(report);
-        watch.addState(report.getCurrentDate(), state);
+        WatchUtil.addState(watch, savePath);
         //write watch
         try {
             write(watch, historyFile);

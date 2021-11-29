@@ -9,10 +9,10 @@ import javafx.util.StringConverter;
 import org.victoria2.tools.vic2sgea.export.CsvExporter;
 import org.victoria2.tools.vic2sgea.export.ExportUtils;
 import org.victoria2.tools.vic2sgea.watcher.Watch;
-import org.victoria2.tools.vic2sgea.watcher.Watcher;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
@@ -64,8 +64,11 @@ public class ExportController extends BaseController implements Initializable {
         }
     }
 
-    public void setWatcher(Watcher watcher) {
-        this.watch = watcher.getWatch();
-        fpOutputDir.setPath(watcher.getHistoryFile().getParent());
+    public void setWatch(Watch watch) {
+        this.watch = watch;
+    }
+
+    public void setOutputDir(Path path) {
+        fpOutputDir.setPath(path);
     }
 }

@@ -12,16 +12,22 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
 import org.victoria2.tools.vic2sgea.entities.Country;
 import org.victoria2.tools.vic2sgea.main.PathKeeper;
 import org.victoria2.tools.vic2sgea.main.Report;
 import org.victoria2.tools.vic2sgea.main.TableRowDoubleClickFactory;
 import org.victoria2.tools.vic2sgea.main.Wrapper;
+import org.victoria2.tools.vic2sgea.watcher.Watch;
+import org.victoria2.tools.vic2sgea.watcher.WatchUtil;
 
+import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 /**
  * @author nashet
@@ -216,7 +222,7 @@ public class WindowController extends BaseController implements Initializable {
 
                     PathKeeper.save(savePath, gamePath, modPath);
 
-                    report = new Report(savePath.toString(), gamePath.toString(), modPath.toString());
+                    report = new Report(savePath.toString(), gamePath != null ? gamePath.toString() : null, modPath != null ? modPath.toString() : null);
 
                     countryTableContent.setAll(report.getCountryList());
                     productListController.setReport(report);
@@ -258,6 +264,17 @@ public class WindowController extends BaseController implements Initializable {
     public void onWatcherWindow() {
         //prompt file name and dir to scan
         Main.showWatcherWindow();
+    }
+
+    public void onManualExport() {
+        FileChooser chooser = new FileChooser();
+        List<File> files = chooser.showOpenMultipleDialog(null);
+        if(files != null) {
+            Watch watch = WatchUtil.fromExisting(
+                    files.stream().map(File::toPath).collect(Collectors.toList())
+            );
+            Main.showManualExportWindow(watch);
+        }
     }
 }
 
