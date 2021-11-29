@@ -4,7 +4,7 @@
 
     <groupId>org.victoria2.tools</groupId>
     <artifactId>vic2sgea</artifactId>
-    <version>0.14-SNAPSHOT</version>
+    <version>0.13.1</version>
     <packaging>jar</packaging>
 
     <name>vic2sgea</name>
