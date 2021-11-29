@@ -24,5 +24,12 @@
 
     <Button onMouseClicked="#exportCsv">Export</Button>
 
+    <HBox spacing="10">
+        <Label>Export all field name</Label>
+        <TextField fx:id="fieldName">gdp</TextField>
+    </HBox>
+
+    <Button onMouseClicked="#exportAll">Export all</Button>
+
 
 </VBox>

@@ -1,7 +1,7 @@
 package org.victoria2.tools.vic2sgea.watcher;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Created by anth on 12.02.2017.
@@ -10,12 +10,12 @@ import java.util.Map;
  */
 public class Watch {
 
-    private Map<String, WorldState> history = new HashMap<>();
+    private SortedMap<String, WorldState> history = new TreeMap<>();
 
     public Watch() {
     }
 
-    public Watch(Map<String, WorldState> history) {
+    public Watch(SortedMap<String, WorldState> history) {
         this.history = history;
     }
 
@@ -23,7 +23,7 @@ public class Watch {
         history.put(date, state);
     }
 
-    public Map<String, WorldState> getHistory() {
+    public SortedMap<String, WorldState> getHistory() {
         return history;
     }
 }

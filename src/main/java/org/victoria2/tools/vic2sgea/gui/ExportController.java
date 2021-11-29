@@ -16,6 +16,8 @@ public class ExportController extends BaseController {
     public TextField tfCountryTag;
     @FXML
     public FilePrompt fpOutputFile;
+    @FXML
+    public TextField fieldName;
 
     private Watch watch;
 
@@ -27,6 +29,16 @@ public class ExportController extends BaseController {
             e.printStackTrace();
         }
     }
+
+    public void exportAll() {
+        try {
+            CsvExporter.exportAll(watch, fieldName.getText(), fpOutputFile.getPath());
+        } catch (IOException e) {
+            errorAlert(e, "Unable to export");
+            e.printStackTrace();
+        }
+    }
+
     public void setWatch(Watch watch) {
         this.watch = watch;
     }

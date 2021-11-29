@@ -13,17 +13,21 @@ import java.util.Date;
  */
 public class CountryCsvBean {
 
-    private Country country;
-    private Date date;
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy.MM.dd");
 
-    public CountryCsvBean(Country country, String date) {
+    private final Country country;
+    private final Date date;
+
+    public CountryCsvBean(Country country, String dateStr) {
         this.country = country;
-        DateFormat format = new SimpleDateFormat("yyyy.MM.dd");
+
+        Date date;
         try {
-            this.date = format.parse(date);
+            date = DATE_FORMAT.parse(dateStr);
         } catch (ParseException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
+        this.date = date;
     }
 
     public Country getCountry() {
