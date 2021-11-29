@@ -32,6 +32,16 @@ public class Country extends EconomySubject implements Comparable<Country> {
      */
     public long workforceRGO;
 
+    /**
+     * Total amount of money paid to RGOs workers and aristocrats (equals to total RGO income)
+     */
+    public double wagesRgo;
+
+    /**
+     * Total amount of money paid to factory workers and capitalists (equals to total RGO income)
+     */
+    public double wagesFactory;
+
     @NonSerializable //too expensive to serialize this
     private Map<String, ProductStorage> storageMap = new HashMap<>();
     @NonSerializable
@@ -127,13 +137,8 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return population;
     }
 
-    public float getUnemploymentRate() {
-        long totalWorkforce = workforceRGO + workforceFactory;
-        return (float) totalWorkforce * 4 / population * 100;
-    }
-
     public float getUnemploymentRateRgo() {
-        return (float) ((workforceRGO - employmentRGO) * 4. / population * 100);
+        return ((float) (workforceRGO - employmentRGO)) / workforceRGO * 100;
     }
 
     public float getUnemploymentRateFactory() {
@@ -148,6 +153,13 @@ public class Country extends EconomySubject implements Comparable<Country> {
         return workforceFactory;
     }
 
+    public long getEmploymentFactory() {
+        return employmentFactory;
+    }
+
+    public long getEmploymentRGO() {
+        return employmentRGO;
+    }
 
     public String getOfficialName() {
         return officialName;

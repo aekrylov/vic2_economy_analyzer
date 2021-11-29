@@ -93,6 +93,11 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     TableColumn<Country, Float> colUnemploymentRateFactory;
 
+    @FXML
+    TableColumn<Country, Double> colWageRgo;
+    @FXML
+    TableColumn<Country, Double> colWageFactory;
+
     private Report report;
 
     @Override
@@ -136,16 +141,21 @@ public class WindowController extends BaseController implements Initializable {
         setFactory(colUnemploymentRate, Country::getUnemploymentRateRgo);
         setFactory(colUnemploymentRateFactory, Country::getUnemploymentRateFactory);
 
+        setFactory(colWageRgo, country -> country.wagesRgo * 100 / country.getEmploymentRGO());
+        setFactory(colWageFactory, country -> country.wagesFactory * 100 / country.getEmploymentFactory());
+
         setCellFactory(colPopulation, new KmgConverter<>());
         setCellFactory(colActualSupply, new KmgConverter<>());
         setCellFactory(colGdp, new KmgConverter<>());
         setCellFactory(colGDPPart, new PercentageConverter());
-        setCellFactory(colGDPPer, new NiceFloatConverter());
+        setCellFactory(colGDPPer, new NiceNumberConverter<>());
         setCellFactory(colWorkForceRgo, new KmgConverter<>());
         setCellFactory(colWorkForceFactory, new KmgConverter<>());
         setCellFactory(colEmployment, new KmgConverter<>());
         setCellFactory(colUnemploymentRate, new PercentageConverter());
         setCellFactory(colUnemploymentRateFactory, new PercentageConverter());
+        setCellFactory(colWageRgo, new NiceNumberConverter<>());
+        setCellFactory(colWageFactory, new NiceNumberConverter<>());
 
         colConsumption.setVisible(false);
         colActualSupply.setVisible(false);
@@ -279,16 +289,16 @@ class PercentageConverter extends StringConverter<Float> {
     }
 }
 
-class NiceFloatConverter extends StringConverter<Float> {
+class NiceNumberConverter<T extends Number> extends StringConverter<T> {
 
     @Override
-    public String toString(Float object) {
-        return String.format("%6.2f", object);
+    public String toString(T object) {
+        return String.format("%.2f", object.doubleValue());
     }
 
     //don't need this
     @Override
-    public Float fromString(String string) {
+    public T fromString(String string) {
         return null;
     }
 }

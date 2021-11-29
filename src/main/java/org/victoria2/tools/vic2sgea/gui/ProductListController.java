@@ -71,19 +71,19 @@ public class ProductListController extends BaseController implements Initializab
         });
 
         setFactory(colName, Product::getName);
-        setFactory(colConsumption, Product::getConsumption, new NiceFloatConverter());
-        setFactory(colRealSupply, Product::getSupply, new NiceFloatConverter());
-        setFactory(colActualSupply, Product::getActualSupply, new NiceFloatConverter());
+        setFactory(colConsumption, Product::getConsumption, new NiceNumberConverter());
+        setFactory(colRealSupply, Product::getSupply, new NiceNumberConverter());
+        setFactory(colActualSupply, Product::getActualSupply, new NiceNumberConverter());
         colActualSupply.setVisible(false);
-        setFactory(colAffordable, Product::getDemand, new NiceFloatConverter());
-        setFactory(colMaxDemand, Product::getMaxDemand, new NiceFloatConverter());
-        setFactory(colBasePrice, Product::getBasePrice, new NiceFloatConverter());
-        setFactory(colMinPrice, Product::getMinPrice, new NiceFloatConverter());
-        setFactory(colMaxPrice, Product::getMaxPrice, new NiceFloatConverter());
-        setFactory(colPrice, Product::getPrice, new NiceFloatConverter());
+        setFactory(colAffordable, Product::getDemand, new NiceNumberConverter());
+        setFactory(colMaxDemand, Product::getMaxDemand, new NiceNumberConverter());
+        setFactory(colBasePrice, Product::getBasePrice, new NiceNumberConverter());
+        setFactory(colMinPrice, Product::getMinPrice, new NiceNumberConverter());
+        setFactory(colMaxPrice, Product::getMaxPrice, new NiceNumberConverter());
+        setFactory(colPrice, Product::getPrice, new NiceNumberConverter());
         setFactory(colTrend, Product::getTrend);
-        setFactory(colOverproduced, Product::getOverproduced, new NiceFloatConverter());
-        setFactory(colInflation, Product::getInflation, new NiceFloatConverter());
+        setFactory(colOverproduced, Product::getOverproduced, new NiceNumberConverter());
+        setFactory(colInflation, Product::getInflation, new NiceNumberConverter());
     }
 
     public void setReport(Report report) {

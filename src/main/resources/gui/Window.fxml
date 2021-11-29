@@ -62,23 +62,29 @@
             <columns>
                 <TableColumn fx:id="colImage" prefWidth="30" text="Flag"/>
                 <TableColumn fx:id="colCountry" prefWidth="200" text="Country"/>
-                <TableColumn id="colPopulation" fx:id="colPopulation" prefWidth="100" text="Population"/>
-                <TableColumn fx:id="colConsumption" prefWidth="85.0" text="Consumption"/>
-                <TableColumn fx:id="colExport" prefWidth="85.0" text="Export"/>
-                <TableColumn fx:id="colImport" prefWidth="84.0" text="Import"/>
-                <TableColumn fx:id="colActualSupply" prefWidth="95.0" text="Actual supply"/>
-                <TableColumn fx:id="colGdp" prefWidth="95.0" text="GDP"/>
-                <TableColumn fx:id="colGDPPer" prefWidth="100.0" text="GDP per capita"/>
-                <TableColumn fx:id="colGDPPlace" prefWidth="58.0" text="GDP #"/>
-                <TableColumn fx:id="colGDPPart" prefWidth="85.0" text="GDP %"/>
-                <TableColumn fx:id="colGoldIncome" prefWidth="85.0" text="Gold income"/>
-                <TableColumn fx:id="colWorkForceRgo" prefWidth="47.0" text="RGO workforce"/>
-                <TableColumn fx:id="colWorkForceFactory" prefWidth="47.0" text="Industrial workforce"/>
-                <TableColumn fx:id="colEmployment" prefWidth="18.0" text="Employed"/>
+                <TableColumn fx:id="colPopulation" prefWidth="100" text="Population" styleClass="align-right"/>
+                <TableColumn fx:id="colConsumption" prefWidth="85.0" text="Consumption" styleClass="align-right"/>
+                <TableColumn fx:id="colExport" prefWidth="85.0" text="Export" styleClass="align-right"/>
+                <TableColumn fx:id="colImport" prefWidth="84.0" text="Import" styleClass="align-right"/>
+                <TableColumn fx:id="colActualSupply" prefWidth="95.0" text="Actual supply" styleClass="align-right"/>
+                <TableColumn fx:id="colGdp" prefWidth="95.0" text="GDP" styleClass="align-right"/>
+                <TableColumn fx:id="colGDPPer" prefWidth="100.0" text="GDP per capita" styleClass="align-right"/>
+                <TableColumn fx:id="colGDPPlace" prefWidth="58.0" text="GDP #" styleClass="align-right"/>
+                <TableColumn fx:id="colGDPPart" prefWidth="85.0" text="GDP %" styleClass="align-right"/>
+                <TableColumn fx:id="colGoldIncome" prefWidth="85.0" text="Gold income" styleClass="align-right"/>
+                <TableColumn fx:id="colWorkForceRgo" prefWidth="47.0" text="RGO workforce" styleClass="align-right"/>
+                <TableColumn fx:id="colWorkForceFactory" prefWidth="47.0" text="Industrial workforce" styleClass="align-right"/>
+                <TableColumn fx:id="colEmployment" prefWidth="18.0" text="Employed" styleClass="align-right"/>
                 <TableColumn prefWidth="137.0" text="Unemployment">
                     <columns>
-                        <TableColumn fx:id="colUnemploymentRate" text="RGO"/>
-                        <TableColumn fx:id="colUnemploymentRateFactory" text="Factory"/>
+                        <TableColumn fx:id="colUnemploymentRate" text="RGO" styleClass="align-right"/>
+                        <TableColumn fx:id="colUnemploymentRateFactory" text="Factory" styleClass="align-right"/>
+                    </columns>
+                </TableColumn>
+                <TableColumn prefWidth="137.0" text="Mean wages">
+                    <columns>
+                        <TableColumn fx:id="colWageRgo" text="RGO" styleClass="align-right"/>
+                        <TableColumn fx:id="colWageFactory" text="Factory" styleClass="align-right"/>
                     </columns>
                 </TableColumn>
             </columns>

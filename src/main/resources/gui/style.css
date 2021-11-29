@@ -9,6 +9,11 @@ Tonis Kasekamp
     -fx-border-color: #000;
 }
 
+.align-right {
+    -fx-text-alignment: right;
+    -fx-alignment: center-right;
+}
+
 #productsTable .table-column {
     -fx-text-alignment: right;
     -fx-alignment: center-right;
