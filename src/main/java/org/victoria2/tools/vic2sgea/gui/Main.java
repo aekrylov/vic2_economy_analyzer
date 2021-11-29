@@ -10,10 +10,11 @@ import org.victoria2.tools.vic2sgea.entities.Country;
 import org.victoria2.tools.vic2sgea.entities.Product;
 import org.victoria2.tools.vic2sgea.main.Properties;
 import org.victoria2.tools.vic2sgea.main.Report;
+import org.victoria2.tools.vic2sgea.watcher.Watcher;
 import org.victoria2.tools.vic2sgea.watcher.WatcherManager;
 
 import java.io.IOException;
-  
+
 public class Main extends Application {
 
     private static Stage productListWindow;
@@ -90,19 +91,30 @@ public class Main extends Application {
     }
 
     public static void showWatcherWindow() {
-        FXMLLoader loader = new FXMLLoader(Main.class.getResource("/gui/Watchers.fxml"));
+        showWindow("/gui/Watchers.fxml", "Watchers");
+    }
+
+    public static void showExportWindow(Watcher watcher) {
+        FXMLLoader loader = showWindow("/gui/Export.fxml", "Export");
+        ((ExportController) loader.getController()).setWatcher(watcher);
+    }
+
+    private static FXMLLoader showWindow(String fxmlPath, String title) {
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource(fxmlPath));
         Parent root;
         try {
             root = loader.load();
             root.getStylesheets().add("/gui/style.css");
 
             Stage window = new Stage();
-            window.setTitle("Watchers");
+            window.setTitle(title);
             window.setScene(new Scene(root));
             window.show();
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return loader;
     }
 }

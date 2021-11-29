@@ -13,11 +13,15 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Created by anth on 12.02.2017.
  */
 public class FilePrompt extends HBox {
+
+    private Path path;
 
     public enum FilePromptType {
         FILE, DIR
@@ -36,7 +40,13 @@ public class FilePrompt extends HBox {
         label.setPrefWidth(100.);
 
         labelWidth.addListener((observable, oldValue, newValue) -> label.setPrefWidth((Double) newValue));
+        pathField.textProperty().addListener((observable, oldValue, newValue) -> path = newValue == null ? null : Paths.get(newValue));
+    }
 
+    public FilePrompt(FilePromptType promptType, String labelText) {
+        this();
+        this.promptType = promptType;
+        label.setText(labelText);
     }
 
     private DoubleProperty labelWidth = new SimpleDoubleProperty(100.);
@@ -60,12 +70,18 @@ public class FilePrompt extends HBox {
     private javafx.event.EventHandler<? super MouseEvent> onButtonClicked;
 
 
-    public String getPath() {
-        return pathField.getText();
+    public Path getPath() {
+        return path;
     }
 
+    @Deprecated
     public void setPath(String path) {
-        this.pathField.setText(path);
+        setPath(Paths.get(path));
+    }
+
+    public void setPath(Path path) {
+        this.path = path;
+        this.pathField.setText(path.toString());
     }
 
     public EventHandler<? super MouseEvent> getOnButtonClicked() {
@@ -81,7 +97,7 @@ public class FilePrompt extends HBox {
         this.promptType = promptType;
         browseButton.setOnMouseClicked(event -> {
             try {
-                String temp = "";
+                File file = null;
 
                 //yes, these two block are almost identical
                 if (promptType == FilePromptType.DIR) {
@@ -92,8 +108,7 @@ public class FilePrompt extends HBox {
                         chooser.setInitialDirectory(initialFile);
                     }
 
-                    File file = chooser.showDialog(null);
-                    temp = file.getPath().replace("\\", "/"); // Usable pathField
+                    file = chooser.showDialog(null);
                 } else if (promptType == FilePromptType.FILE) {
                     FileChooser chooser = new FileChooser();
                     if (!pathField.getText().isEmpty()) {
@@ -102,11 +117,10 @@ public class FilePrompt extends HBox {
                         chooser.setInitialDirectory(initialFile);
                     }
 
-                    File file = chooser.showOpenDialog(null);
-                    temp = file.getPath().replace("\\", "/"); // Usable pathField
+                    file = chooser.showOpenDialog(null);
                 }
 
-                setPath(temp);
+                setPath(file.toPath());
 
             } catch (NullPointerException ignored) {
             }

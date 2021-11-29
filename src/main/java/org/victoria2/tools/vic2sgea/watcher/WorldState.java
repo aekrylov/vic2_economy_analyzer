@@ -21,4 +21,12 @@ public class WorldState {
         countries = report.getCountryList();
         products = report.getProductList();
     }
+
+    public Collection<Country> getCountries() {
+        return countries;
+    }
+
+    public Collection<Product> getProducts() {
+        return products;
+    }
 }

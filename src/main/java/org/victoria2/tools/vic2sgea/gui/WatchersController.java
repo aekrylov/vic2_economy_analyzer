@@ -4,14 +4,17 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import org.victoria2.tools.vic2sgea.main.PathKeeper;
 import org.victoria2.tools.vic2sgea.watcher.Watcher;
 import org.victoria2.tools.vic2sgea.watcher.WatcherManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -42,8 +45,8 @@ public class WatchersController extends BaseController implements Initializable 
     private WatcherManager watcherManager = WatcherManager.getInstance();
 
     public void startWatcher() {
-        Path historyFile = Paths.get(fpHistoryFile.getPath());
-        Path saveDir = Paths.get(fpSaveDir.getPath());
+        Path historyFile = fpHistoryFile.getPath();
+        Path saveDir = fpSaveDir.getPath();
 
         try {
             Watcher watcher = new Watcher(historyFile, saveDir);
@@ -56,8 +59,7 @@ public class WatchersController extends BaseController implements Initializable 
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        String savePath = PathKeeper.SAVE_PATH;
-        fpSaveDir.setPath(Paths.get(savePath).getParent().toString());
+        PathKeeper.getSavePath().ifPresent(p -> fpSaveDir.setPath(p.getParent()));
         colHistoryFile.setCellValueFactory(new PropertyValueFactory<>("historyFile"));
         colSaveDir.setCellValueFactory(new PropertyValueFactory<>("saveDir"));
 
@@ -82,15 +84,56 @@ public class WatchersController extends BaseController implements Initializable 
         }
     }
 
+    static class ExportWatcherButton extends Button {
+
+        private Watcher watcher;
+
+        public ExportWatcherButton(Watcher watcher) {
+            super("Export");
+            this.watcher = watcher;
+        }
+
+        @Override
+        public void fire() {
+            super.fire();
+            //show export dialog
+            Main.showExportWindow(watcher);
+        }
+    }
+
+    static class WatcherManualAddButton extends Button {
+
+        private final Watcher watcher;
+
+        public WatcherManualAddButton(Watcher watcher) {
+            super("Manual add");
+            this.watcher = watcher;
+        }
+
+        @Override
+        public void fire() {
+            super.fire();
+
+            FileChooser chooser = new FileChooser();
+            chooser.setInitialDirectory(watcher.getSaveDir().toFile());
+
+            List<File> files = chooser.showOpenMultipleDialog(null);
+            if (files != null) {
+                files.forEach(file -> watcher.addState(file.toPath())); //todo not on UI thread
+            }
+            infoAlert("Files were added successfully");
+        }
+    }
+
     static class WatcherActionCell extends TableCell<Watcher, Void> {
 
         @Override
         protected void updateItem(Void item, boolean empty) {
             super.updateItem(item, empty);
             if (!empty) {
-                Watcher watcher = (Watcher) getTableRow().getItem();
+                Watcher watcher = getTableRow().getItem();
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                setGraphic(new RemoveWatcherButton(watcher));
+                setGraphic(new HBox(new ExportWatcherButton(watcher), new WatcherManualAddButton(watcher), new RemoveWatcherButton(watcher)));
             }
         }
     }
