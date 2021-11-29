@@ -23,21 +23,36 @@ public class Watcher extends Thread {
     private Watch watch;
 
     public Watcher(Path historyFile, Path saveDir) throws IOException {
-        if (!Files.exists(historyFile))
-            Files.createFile(historyFile);
+        this.historyFile = historyFile;
+        this.saveDir = saveDir;
 
-        this.watch = read(historyFile);
+        if (!Files.exists(historyFile)) {
+            Files.createFile(historyFile);
+        } else {
+            this.watch = read(historyFile);
+        }
+
         if (watch == null) {
             watch = new Watch();
         }
-        this.historyFile = historyFile;
-        this.saveDir = saveDir;
 
         saveDir.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
     }
 
     public Watch getWatch() {
         return watch;
+    }
+
+    public void addState(Path savePath) {
+        Report report = new Report(savePath.toString(), null, null);
+        WorldState state = new WorldState(report);
+        watch.addState(report.getCurrentDate(), state);
+        //write watch
+        try {
+            write(watch, historyFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e); //todo proper exception handling
+        }
     }
 
     @Override
@@ -64,11 +79,7 @@ public class Watcher extends Thread {
                 WatchEvent<Path> event = (WatchEvent<Path>) events.get(events.size() - 1);
                 Path lastSave = saveDir.resolve(event.context());
                 if (Files.size(lastSave) > 0) {
-                    Report report = new Report(lastSave.toString(), null, null);
-                    WorldState state = new WorldState(report);
-                    watch.addState(report.getCurrentDate(), state);
-                    //write watch
-                    write(watch, historyFile);
+                    addState(lastSave);
                 }
 
                 key.reset();

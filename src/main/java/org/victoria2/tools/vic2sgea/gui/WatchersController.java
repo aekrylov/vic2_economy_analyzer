@@ -5,10 +5,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import org.victoria2.tools.vic2sgea.main.PathKeeper;
+import org.victoria2.tools.vic2sgea.watcher.Watch;
 import org.victoria2.tools.vic2sgea.watcher.Watcher;
 import org.victoria2.tools.vic2sgea.watcher.WatcherManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -99,15 +102,38 @@ public class WatchersController extends BaseController implements Initializable 
         }
     }
 
+    static class WatcherManualAddButton extends Button {
+
+        private final Watcher watcher;
+
+        public WatcherManualAddButton(Watcher watcher) {
+            super("Manual add");
+            this.watcher = watcher;
+        }
+
+        @Override
+        public void fire() {
+            super.fire();
+
+            FileChooser chooser = new FileChooser();
+            PathKeeper.getSavePath().ifPresent(p -> chooser.setInitialDirectory(p.toFile()));
+
+            File file = chooser.showOpenDialog(null);
+            if (file != null) {
+                watcher.addState(file.toPath()); //todo not on UI thread?
+            }
+        }
+    }
+
     static class WatcherActionCell extends TableCell<Watcher, Void> {
 
         @Override
         protected void updateItem(Void item, boolean empty) {
             super.updateItem(item, empty);
             if (!empty) {
-                Watcher watcher = (Watcher) getTableRow().getItem();
+                Watcher watcher = getTableRow().getItem();
                 setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                setGraphic(new HBox(new ExportWatcherButton(watcher), new RemoveWatcherButton(watcher)));
+                setGraphic(new HBox(new ExportWatcherButton(watcher), new WatcherManualAddButton(watcher), new RemoveWatcherButton(watcher)));
             }
         }
     }
