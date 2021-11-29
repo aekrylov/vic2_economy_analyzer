@@ -40,7 +40,7 @@ public class FilePrompt extends HBox {
         label.setPrefWidth(100.);
 
         labelWidth.addListener((observable, oldValue, newValue) -> label.setPrefWidth((Double) newValue));
-
+        pathField.textProperty().addListener((observable, oldValue, newValue) -> path = newValue == null ? null : Paths.get(newValue));
     }
 
     public FilePrompt(FilePromptType promptType, String labelText) {
