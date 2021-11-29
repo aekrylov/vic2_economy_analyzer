@@ -71,6 +71,14 @@ public abstract class BaseController {
         });
     }
 
+    protected static void infoAlert(String text) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setContentText(text);
+            alert.show();
+        });
+    }
+
     public void exit() {
         Platform.exit();
     }

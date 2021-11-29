@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.ResourceBundle;
 
 /**
@@ -118,10 +119,11 @@ public class WatchersController extends BaseController implements Initializable 
             FileChooser chooser = new FileChooser();
             PathKeeper.getSavePath().ifPresent(p -> chooser.setInitialDirectory(p.toFile()));
 
-            File file = chooser.showOpenDialog(null);
-            if (file != null) {
-                watcher.addState(file.toPath()); //todo not on UI thread?
+            List<File> files = chooser.showOpenMultipleDialog(null);
+            if (files != null) {
+                files.forEach(file -> watcher.addState(file.toPath())); //todo not on UI thread
             }
+            infoAlert("Files were added successfully");
         }
     }
 
