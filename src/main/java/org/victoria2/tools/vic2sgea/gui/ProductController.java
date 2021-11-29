@@ -36,9 +36,12 @@ public class ProductController extends ChartsController {
         totalSum = total * product.price;
         String title = String.format("%s %s (%.1f items, %.1f£)", name, product.getName(), total, totalSum);
 
-        Function<PieChart.Data, String> onEnter = data ->
-                String.format("%s: %.2f items, %.2f£",
-                        report.getCountry(data.getName()).getOfficialName(), data.getPieValue(), data.getPieValue() * product.price);
+        Function<PieChart.Data, String> onEnter = data -> {
+            Country country = report.getCountry(data.getName());
+            String countryName = (country == null) ? data.getName() : country.getOfficialName();
+            return String.format("%s: %.2f items, %.2f£",
+                    countryName, data.getPieValue(), data.getPieValue() * product.price);
+        };
 
         Consumer<PieChart.Data> onClick = data -> Main.showCountry(report, report.getCountry(data.getName()));
 

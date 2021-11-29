@@ -11,6 +11,7 @@ import org.victoria2.tools.vic2sgea.entities.Product;
 import org.victoria2.tools.vic2sgea.main.Properties;
 import org.victoria2.tools.vic2sgea.main.Report;
 import org.victoria2.tools.vic2sgea.watcher.Watch;
+import org.victoria2.tools.vic2sgea.watcher.WatcherManager;
 
 import java.io.IOException;
 
@@ -38,9 +39,6 @@ public class Main extends Application {
         stage.show();
         stage.getIcons().add(new Image("/flags/EST.png")); /* Cause I'm Estonian, thats why */
 
-        // Throws error when user cancels selection
-
-
         try {
             FXMLLoader productListLoader = new FXMLLoader(getClass().getResource("/gui/ProductList.fxml"));
             root = productListLoader.load();
@@ -49,7 +47,7 @@ public class Main extends Application {
             windowController.setProductListController(productListLoader.getController());
 
             productListWindow = new Stage();
-            productListWindow.setTitle("Product list productListWindow");
+            productListWindow.setTitle("Product list");
             productListWindow.getIcons().add(new Image("/flags/EST.png"));  //Cause I'm Estonian, thats why
             productListWindow.setScene(new Scene(root));
 
@@ -59,11 +57,16 @@ public class Main extends Application {
 
     }
 
+    @Override
+    public void stop() throws Exception {
+        WatcherManager.getInstance().getWatcherList().forEach(Thread::interrupt);
+    }
+
     public static void showCountry(Report report, Country country) {
         CountryController controller = new CountryController(report, country);
 
         Stage window = new Stage();
-        window.setTitle(country.getOfficialName() + " - Country productListWindow");
+        window.setTitle(country.getOfficialName() + " - Country window");
         window.setScene(controller.getScene());
 
         window.show();
@@ -73,7 +76,7 @@ public class Main extends Application {
         ProductController controller = new ProductController(report, product);
 
         Stage productWindow = new Stage();
-        productWindow.setTitle(product.getName() + " - Product productListWindow");
+        productWindow.setTitle(product.getName() + " - Product window");
         productWindow.setScene(controller.getScene());
 
         productWindow.show();

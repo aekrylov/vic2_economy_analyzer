@@ -2,8 +2,6 @@
 
 Based on old [Nashetovich's code](http://oldforum.paradoxplaza.com/forum/showthread.php?715468) with minor changes, 
  so now it works with Java 8 and higher.
- 
-**Tested with Oracle JRE 1.8 only** 
 
 ## Usage
 
@@ -14,6 +12,11 @@ Based on old [Nashetovich's code](http://oldforum.paradoxplaza.com/forum/showthr
 
 Double click on a table row (or single click on a chart item) opens detailed info window.
 
+Check out project wiki for more info.
+
+## How to build
+
+Run `mvn package`. It will create `Vic2SGEA.jar` in the build directory. 
 
 ## Troubleshooting
 
@@ -28,4 +31,6 @@ Double click on a table row (or single click on a chart item) opens detailed inf
 
 - [x] Upload jar files
 - [x] Test with different environments
-- [ ] Improve architecture and code quality
+- [x] Improve architecture and code quality
+- [x] Implement continuous watching for game history
+- [ ] Display or export game history 

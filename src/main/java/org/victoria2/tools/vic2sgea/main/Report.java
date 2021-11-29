@@ -75,10 +75,7 @@ public class Report {
         System.out.println("Loading products");
         //load all existing products
         Set<Product> products = ReportHelpers.readProducts(modPath);
-        if (products == null)
-            products = ReportHelpers.readProducts(gamePath);
-        else
-            products.addAll(ReportHelpers.readProducts(gamePath));
+        products.addAll(ReportHelpers.readProducts(gamePath));
 
         productMap = products.stream()
                 .collect(Collectors.toMap(Product::getName, Function.identity()));
@@ -145,10 +142,9 @@ public class Report {
         String line;
         while ((line = in.readLine()) != null) {
             String[] dataArray = line.split(";");
-            if (dataArray.length < 1)
+            if (dataArray.length <= 1) // <=1 - otherwise dataArray[1] gaves Out of Boundaries exception in setCountryName(dataArray[0], dataArray[1]) some times - nash
                 continue;
-
-            setCountryName(dataArray[0], dataArray[1]);
+            setCountryName(dataArray[0], dataArray[1]); 
         }
         in.close();
     }
@@ -176,9 +172,6 @@ public class Report {
         Country totalCountry = countries.computeIfAbsent(TOTAL_TAG, Country::new);
 
         for (Country country : countryList) {
-            if (country.getTag().equals(TOTAL_TAG))
-                continue;
-
             // calculating real totalSupply (without wasted)
             country.innerCalculations();
             totalCountry.add(country);
@@ -198,8 +191,7 @@ public class Report {
         countryList.sort(Comparator.reverseOrder());
         int calc = 0;
         for (Country country : countryList) {
-            country.setGDPPlace(calc);
-            calc++;
+            country.setGDPPlace(++calc);
         }
 
         Product total = new Product(TOTAL_PRODUCT);

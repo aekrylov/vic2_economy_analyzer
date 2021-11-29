@@ -92,14 +92,6 @@ public class WindowController extends BaseController implements Initializable {
     @FXML
     TableColumn<Country, Float> colUnemploymentRateFactory;
 
-    private void fillMainTable() {
-        countryTableContent.clear();
-        countryTableContent.addAll(report.getCountryList());
-        mainTable.setItems(countryTableContent);
-    }
-
-    private WindowController self;
-
     private Report report;
 
     @Override
@@ -107,6 +99,7 @@ public class WindowController extends BaseController implements Initializable {
 
         //add row click handler
         mainTable.setRowFactory(new TableRowDoubleClickFactory<>(country -> Main.showCountry(report, country)));
+        mainTable.setItems(countryTableContent);
 
         colImage.setCellValueFactory(features -> {
             String tag = features.getValue().getTag();
@@ -179,7 +172,6 @@ public class WindowController extends BaseController implements Initializable {
 
         });
 
-        self = this;
     }
 
     public final void onGoods(ActionEvent event) {
@@ -217,13 +209,12 @@ public class WindowController extends BaseController implements Initializable {
 
                     report = new Report(savePath, gamePath, modPath);
 
-                    fillMainTable();
+                    countryTableContent.setAll(report.getCountryList());
                     productListController.setReport(report);
-                    productListController.fillTable(report.getProductList());
 
                     float res = ((float) System.nanoTime() - startTime) / 1000000000;
                     System.out.println("Nash: total time is " + res + " seconds");
-                    Platform.runLater(() -> setLabels());
+                    Platform.runLater(() -> setLabels(report));
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -241,7 +232,7 @@ public class WindowController extends BaseController implements Initializable {
 
     }
 
-    private void setLabels() {
+    private void setLabels(Report report) {
         lblCurrentDate.setText(report.getCurrentDate());
         lblPlayer.setText(report.getPlayerCountry().getOfficialName());
         lblStartDate.setText(report.getStartDate());
@@ -255,7 +246,7 @@ public class WindowController extends BaseController implements Initializable {
     public void createNewHistory() {
     }
 
-    public void onSetActiveWatcher() {
+    public void onWatcherWindow() {
         //prompt file name and dir to scan
         Main.showWatcherWindow();
     }
