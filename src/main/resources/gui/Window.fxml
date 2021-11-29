@@ -13,7 +13,7 @@
             <!--
                         <MenuItem text="New history file..." onAction="#createNewHistory"/>
             -->
-            <MenuItem text="Set active watcher..." onAction="#onSetActiveWatcher"/>
+            <MenuItem text="Manage watchers" onAction="#onWatcherWindow"/>
         </Menu>
     </MenuBar>
 

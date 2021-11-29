@@ -3,7 +3,7 @@ package org.victoria2.tools.vic2sgea.main;
 import eug.parser.EUGFileIO;
 import eug.shared.GenericList;
 import eug.shared.GenericObject;
-import javafx.scene.paint.Color;
+import org.victoria2.tools.vic2sgea.entities.Color;
 import org.victoria2.tools.vic2sgea.entities.Product;
 
 import java.io.File;
@@ -70,10 +70,10 @@ public class ReportHelpers {
 
                     //set color
                     GenericList rgb = object.getList("color");
-                    double red = Double.valueOf(rgb.get(0)) / 255.;
-                    double green = Double.valueOf(rgb.get(1)) / 255.;
-                    double blue = Double.valueOf(rgb.get(2)) / 255.;
-                    product.setColor(new Color(red, green, blue, 1));
+                    double red = Double.parseDouble(rgb.get(0)) / 255.;
+                    double green = Double.parseDouble(rgb.get(1)) / 255.;
+                    double blue = Double.parseDouble(rgb.get(2)) / 255.;
+                    product.setColor(new Color(red, green, blue));
 
                     products.add(product);
                 }

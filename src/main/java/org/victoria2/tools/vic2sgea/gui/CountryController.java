@@ -1,7 +1,6 @@
 package org.victoria2.tools.vic2sgea.gui;
 
 import javafx.scene.chart.PieChart;
-import javafx.scene.paint.Color;
 import org.victoria2.tools.vic2sgea.entities.Country;
 import org.victoria2.tools.vic2sgea.entities.EconomySubject;
 import org.victoria2.tools.vic2sgea.entities.Product;
@@ -24,11 +23,9 @@ public class CountryController extends ChartsController {
                 .map(productStorage -> {
                     String name = productStorage.product.getName();
                     double value = getter.apply(productStorage) * productStorage.getPrice();
-                    Color color = productStorage.product.getColor();
 
-                    ChartSlice slice = new ChartSlice(name, value, color);
-
-                    return slice;
+                    return new ChartSlice(name, value);
+                    //return new ChartSlice(name, value, color);
                 })
                 .collect(Collectors.toList());
 
@@ -41,7 +38,11 @@ public class CountryController extends ChartsController {
 
         Function<PieChart.Data, String> onEnter = data -> {
             ProductStorage productStorage = storageMap.get(data.getName());
-            return String.format("%s: %.1f£ (%.1f items)", data.getName(), data.getPieValue(), getter.apply(productStorage));
+            if(productStorage == null) {
+                return String.format("%s: %.1f£", data.getName(), data.getPieValue());
+            }
+            double items = getter.apply(productStorage);
+            return String.format("%s: %.1f£ (%.1f items)", data.getName(), data.getPieValue(), items);
         };
 
         String title = String.format("%s of %s (%.1f£)", chartName, country.getOfficialName(), getter.apply(country));

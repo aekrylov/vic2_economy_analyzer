@@ -30,9 +30,7 @@ public class Vic2SaveGameCustom extends Vic2SaveGame {
         for (GenericObject obj : getCountries()) {
             List<GenericObject> countryStates = new ArrayList<>();
             states.put(obj, countryStates);
-            for (GenericObject state : obj.getChildren("state")) {
-                countryStates.add(state);
-            }
+            countryStates.addAll(obj.getChildren("state"));
         }
 
     }

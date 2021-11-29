@@ -30,6 +30,9 @@ public class ChartsController extends BaseController {
     protected final GridPane grid;
     protected final Report report;
 
+    public static final int NUM_SLICES = 25;
+    public static final double VALUE_THRESHOLD = 0.01;
+
     private int chartCount = 0;
 
     public ChartsController(Report report) {
@@ -53,7 +56,7 @@ public class ChartsController extends BaseController {
     /**
      * Adds chart to grid
      *
-     * @param pieChartData chart data
+     * @param slices chart data
      * @param i            column index
      * @param j            row index
      * @param title        chart title
@@ -61,9 +64,26 @@ public class ChartsController extends BaseController {
      * @param onClick      consumer called when an item is clicked
      * @return the created chart
      */
-    protected PieChart addChart(List<PieChart.Data> pieChartData, int i, int j, String title,
-                                Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
-        pieChartData.sort(Comparator.comparing(PieChart.Data::getPieValue).reversed());
+    private PieChart addChart(List<ChartSlice> slices, int i, int j, String title,
+                              Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
+        slices.sort(Comparator.comparing(ChartSlice::getValue).reversed());
+
+        double totalValue = slices.stream().mapToDouble(ChartSlice::getValue).sum();
+        slices = slices.stream()
+                .filter(data -> data.getValue() / totalValue > VALUE_THRESHOLD)
+                .limit(NUM_SLICES)
+                .collect(Collectors.toList());
+
+        double topValue = slices.stream().mapToDouble(ChartSlice::getValue).sum();
+        if(totalValue - topValue > .001) {
+            ChartSlice others = new ChartSlice("Others", totalValue - topValue, Color.GRAY);
+            slices.add(others);
+        }
+
+        List<PieChart.Data> pieChartData = slices.stream()
+                .map(chartSlice -> chartSlice.data)
+                .collect(Collectors.toList());
+
         final PieChart chart = new PieChart(FXCollections.observableList(pieChartData));
 
         chart.setStartAngle(90);
@@ -80,15 +100,9 @@ public class ChartsController extends BaseController {
 
         grid.add(subPane, i, j);
 
-        Double totalValue = chart.getData().stream()
-                .map(PieChart.Data::getPieValue)
-                .reduce(0., (d1, d2) -> d1 + d2);
+        slices.forEach(ChartSlice::applyColor);
 
         for (final PieChart.Data data : chart.getData()) {
-            if (data.getPieValue() / totalValue < .001) {
-                data.getNode().setVisible(false);
-                continue;
-            }
             data.getNode().addEventHandler(MouseEvent.MOUSE_ENTERED,
                     e -> caption.setText(onEnter.apply(data)));
             data.getNode().addEventHandler(MouseEvent.MOUSE_CLICKED,
@@ -97,17 +111,7 @@ public class ChartsController extends BaseController {
 
         return chart;
     }
-
-    /*protected PieChart addChart(List<PieChart.Data> pieChartData, String title,
-                                Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
-        int row = (chartCount / 2);
-        int column = chartCount % 2;
-
-        chartCount++;
-        return addChart(pieChartData, column, row, title, onEnter, onClick);
-
-    }*/
-
+    
     protected PieChart addChart(List<ChartSlice> slices, String title,
                                 Function<PieChart.Data, String> onEnter, Consumer<PieChart.Data> onClick) {
         int row = (chartCount / 2);
@@ -115,15 +119,7 @@ public class ChartsController extends BaseController {
 
         chartCount++;
 
-        List<PieChart.Data> pieChartData = slices.stream()
-                .map(chartSlice -> chartSlice.data)
-                .collect(Collectors.toList());
-
-        PieChart chart = addChart(pieChartData, column, row, title, onEnter, onClick);
-        //todo ugly colors
-        //slices.forEach(ChartSlice::setColor);
-
-        return chart;
+        return addChart(slices, column, row, title, onEnter, onClick);
 
     }
 
@@ -133,7 +129,7 @@ public class ChartsController extends BaseController {
 
     static class ChartSlice {
         private Color color;
-        private PieChart.Data data;
+        private final PieChart.Data data;
 
         public ChartSlice(String name, double value, Color color) {
             this(name, value);
@@ -144,11 +140,19 @@ public class ChartsController extends BaseController {
             data = new PieChart.Data(name, value);
         }
 
-        void setColor() {
+        public void applyColor() {
             if (color == null)
                 return;
             String webColor = Wrapper.toWebColor(color);
             data.getNode().setStyle("-fx-pie-color: " + webColor);
+        }
+
+        public String getName() {
+            return data.getName();
+        }
+
+        public double getValue() {
+            return data.getPieValue();
         }
     }
 }

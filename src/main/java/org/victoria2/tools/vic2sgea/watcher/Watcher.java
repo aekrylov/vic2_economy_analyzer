@@ -73,8 +73,9 @@ public class Watcher extends Thread {
 
                 key.reset();
             } catch (InterruptedException e) {
+                //interrupted exception can be thrown while thread is waiting
                 e.printStackTrace();
-                continue;
+                break;
             } catch (IOException e) {
                 e.printStackTrace();
                 continue;

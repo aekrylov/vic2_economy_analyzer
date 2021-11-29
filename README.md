@@ -16,7 +16,7 @@ Check out project wiki for more info.
 
 ## How to build
 
-Run `mvn package`. It will create `Vic2SGEA-jar-with-dependencies.jar` in build directory. 
+Run `mvn package`. It will create `Vic2SGEA.jar` in the build directory. 
 
 ## Troubleshooting
 

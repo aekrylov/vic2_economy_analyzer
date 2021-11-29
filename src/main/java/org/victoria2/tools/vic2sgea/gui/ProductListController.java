@@ -63,6 +63,7 @@ public class ProductListController extends BaseController implements Initializab
 
         //add double click listener
         productsTable.setRowFactory(new TableRowDoubleClickFactory<>(product -> Main.showProduct(report, product)));
+        productsTable.setItems(productsTableItems);
 
         btnHideZeros.setOnMouseClicked(e -> {
             boolean selected = btnHideZeros.isSelected();
@@ -91,14 +92,12 @@ public class ProductListController extends BaseController implements Initializab
         this.productsFiltered = products.stream()
                 .filter(product -> product.getActualSupply() > 0)
                 .collect(Collectors.toList());
+
+        fillTable(btnHideZeros.isSelected() ? productsFiltered : products);
     }
 
-    public void fillTable(Collection<Product> products) {
-        productsTableItems.clear();
-
-        productsTableItems.addAll(products);
+    private void fillTable(Collection<Product> products) {
+        productsTableItems.setAll(products);
         productsTableItems.sort(Comparator.comparing(Product::getName));
-
-        productsTable.setItems(productsTableItems);
     }
 }

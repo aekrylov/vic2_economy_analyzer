@@ -1,7 +1,5 @@
 package org.victoria2.tools.vic2sgea.entities;
 
-import javafx.scene.paint.Color;
-
 /**
  * @author nash
  *         This is static-alike class for report
