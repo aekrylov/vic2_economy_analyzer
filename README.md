@@ -16,7 +16,7 @@ Check out project wiki for more info.
 
 ## How to build
 
-Run `mvn jfx:jar`. It will create `Vic2SGEA.jar` in the build directory. 
+Run `mvn package`. It will create `Vic2SGEA.jar` in the build directory. 
 
 ## Troubleshooting
 
