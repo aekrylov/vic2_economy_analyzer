@@ -37,7 +37,7 @@ public class CsvExporter {
         writer.configureBeanMapping(CountryCsvBean.class, fields.toArray(new String[0]));
         writer.writeHeader(
                 fields.stream()
-                        .map(f -> ExportUtils.COUNTRY_FIELDS.getOrDefault(f, f))
+                        .map(f -> ExportUtils.COUNTRY_FIELDS.getOrDefault(f.replace("country.", ""), f))
                         .toArray(String[]::new)
         );
 
