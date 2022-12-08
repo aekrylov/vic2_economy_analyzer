@@ -56,21 +56,21 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: image-dmg
-          path: build/jpackage/*.dmg
+          path: build/jpackage/vic2-sgea-1.0.0.dmg
           if-no-files-found: ignore
 
       - name: Upload msi
         uses: actions/upload-artifact@v2
         with:
           name: image-msi
-          path: build/jpackage/*.msi
+          path: build/jpackage/vic2-sgea-1.0.0.msi
           if-no-files-found: ignore
 
       - name: Upload deb
         uses: actions/upload-artifact@v2
         with:
           name: image-deb
-          path: build/jpackage/*.deb
+          path: build/jpackage/vic2-sgea-1.0.0.deb
           if-no-files-found: ignore
 
       - name: Upload Linux dist as an artifact

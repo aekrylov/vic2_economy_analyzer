@@ -50,9 +50,10 @@ jlink {
     ]
 
     jpackage {
-        appVersion = '0.14.0' //todo
+        appVersion = '1.0.0' //todo
         imageOutputDir = file("$buildDir/dist")
-        imageName = 'Vic2-SGEA'
+        imageName = 'vic2-sgea'
+        installerName = 'vic2-sgea'
         /*if (DefaultNativePlatform.currentOperatingSystem.windows) {
             icon = "misc/logo.ico"
         } else if (DefaultNativePlatform.currentOperatingSystem.linux) {
@@ -62,7 +63,6 @@ jlink {
         }*/
         skipInstaller = project.hasProperty("skipInstaller")
         installerType = project.findProperty('installerType')
-        applicationName = 'Vic2-SGEA'
     }
 }
 
