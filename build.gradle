@@ -1,8 +1,9 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 plugins {
-    id 'java'
-    id 'maven-publish'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'org.beryx.jlink' version '2.25.0'
 }
 
 repositories {
@@ -25,16 +26,28 @@ if (currentOS.isWindows()) {
     }
 }
 
+javafx {
+    version = "13"
+    modules = ['javafx.controls', 'javafx.graphics', 'javafx.fxml', 'javafx.media']
+}
+
+mainClassName = 'org.victoria2.tools.vic2sgea.gui.Main'
+
+
+jlink {
+    launcher {
+        name = 'vic2sgea'
+    }
+}
+
 
 dependencies {
-    implementation "org.openjfx:javafx-base:13:${platform}"
-    implementation "org.openjfx:javafx-controls:13:${platform}"
-    implementation "org.openjfx:javafx-graphics:13:${platform}"
-    implementation "org.openjfx:javafx-fxml:13:${platform}"
-    implementation "org.openjfx:javafx-media:13:${platform}"
-
     implementation 'com.google.code.gson:gson:2.8.0'
-    implementation 'net.sf.supercsv:super-csv-dozer:2.4.0'
+
+    // superscv is not module compatible and name 'super-csv' yields invalid auto module name; have to rename it
+    implementation files('libs/supercsv-2.4.0.jar')
+    implementation files('libs/supercsv-dozer-2.4.0.jar')
+
     testImplementation 'junit:junit:3.8.1'
 }
 
@@ -42,16 +55,8 @@ group = 'org.victoria2.tools'
 version = '0.14-SNAPSHOT'
 description = 'vic2sgea'
 
-java.sourceCompatibility = JavaVersion.VERSION_1_8
-java.targetCompatibility = JavaVersion.VERSION_1_8
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from(components.java)
-        }
-    }
-}
+java.sourceCompatibility = JavaVersion.VERSION_17
+java.targetCompatibility = JavaVersion.VERSION_17
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
