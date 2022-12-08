@@ -46,3 +46,4 @@ pack.bat
 .project
 .classpath
 
+/.gradle/
