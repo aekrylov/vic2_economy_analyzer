@@ -68,7 +68,7 @@ jlink {
 
 
 dependencies {
-    implementation 'com.google.code.gson:gson:2.8.0'
+    implementation 'com.google.code.gson:gson:2.8.9'
 
     // superscv is not module compatible and name 'super-csv' yields invalid auto module name; have to rename it
     implementation files('libs/supercsv-2.4.0.jar')
