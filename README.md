@@ -16,7 +16,9 @@ Check out project wiki for more info.
 
 ## How to build
 
-Run `mvn package`. It will create `Vic2SGEA.jar` in the build directory. 
+Use `gradle run` to run the app.
+
+Use `gradle jpackage` to make a runtime image in `build/dist` folder (no JVM required)
 
 ## Troubleshooting
 
