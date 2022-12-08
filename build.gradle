@@ -12,7 +12,7 @@ repositories {
 }
 
 group = 'org.victoria2.tools'
-version = '0.15-SNAPSHOT'
+version = '0.14.1'
 description = 'vic2sgea'
 
 javafx {
