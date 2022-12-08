@@ -60,7 +60,7 @@ jlink {
         } else {
             icon = "misc/logo.icns"
         }*/
-        skipInstaller = project.hasProperty("skipInstaller") || !project.hasProperty('installerType')
+        skipInstaller = project.hasProperty("skipInstaller")
         installerType = project.findProperty('installerType')
         applicationName = 'Vic2-SGEA'
     }
