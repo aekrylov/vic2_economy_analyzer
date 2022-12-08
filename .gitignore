@@ -8,11 +8,6 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
-*.jar
-*.war
-*.ear
-
 # Maven
 target
 
@@ -47,3 +42,4 @@ pack.bat
 .classpath
 
 /.gradle/
+build
