@@ -1,0 +1,89 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'org.beryx.jlink' version '2.25.0'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+def currentOS = DefaultNativePlatform.currentOperatingSystem;
+def suffix = ''
+def platform
+if (currentOS.isWindows()) {
+    platform = 'win'
+} else if (currentOS.isLinux()) {
+    platform = 'linux'
+} else if (currentOS.isMacOsX()) {
+    platform = 'mac'
+    def macArch = System.getProperty ("os.arch");
+    if (macArch == 'aarch64') {
+        suffix = '-aarch64'
+    }
+}
+
+javafx {
+    version = "19"
+    modules = ['javafx.controls', 'javafx.fxml']
+}
+
+application {
+    mainModule = 'vic2sgea'
+    mainClassName = 'org.victoria2.tools.vic2sgea.gui.Main'
+}
+
+jlink {
+    launcher {
+        name = 'Vic2-SGEA'
+        jvmArgs = ['-Xmx1500m']
+    }
+
+    options = [
+            '--strip-debug',
+            '--compress', '2',
+            '--no-header-files',
+            '--no-man-pages'
+    ]
+
+    jpackage {
+        appVersion = '1.0.0' //todo
+        imageOutputDir = file("$buildDir/dist")
+        imageName = 'vic2-sgea'
+        installerName = 'vic2-sgea'
+        /*if (DefaultNativePlatform.currentOperatingSystem.windows) {
+            icon = "misc/logo.ico"
+        } else if (DefaultNativePlatform.currentOperatingSystem.linux) {
+            icon = "misc/logo.png"
+        } else {
+            icon = "misc/logo.icns"
+        }*/
+        skipInstaller = project.hasProperty("skipInstaller")
+        installerType = project.findProperty('installerType')
+    }
+}
+
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.8.0'
+
+    // superscv is not module compatible and name 'super-csv' yields invalid auto module name; have to rename it
+    implementation files('libs/supercsv-2.4.0.jar')
+    implementation files('libs/supercsv-dozer-2.4.0.jar')
+
+    testImplementation 'junit:junit:3.8.1'
+}
+
+group = 'org.victoria2.tools'
+version = '0.14-SNAPSHOT'
+description = 'vic2sgea'
+
+java.sourceCompatibility = JavaVersion.VERSION_17
+java.targetCompatibility = JavaVersion.VERSION_17
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

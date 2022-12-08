@@ -3,7 +3,6 @@ package eug.parser;
 import eug.shared.GenericList;
 import eug.shared.GenericObject;
 
-import javax.swing.*;
 import java.io.*;
 import java.util.function.BiConsumer;
 
@@ -553,18 +552,6 @@ public class CWordFile {
 //            }
 //        }
 //    }
-
-    /**
-     * Displays an error dialog with the given text, and also prints it to
-     * System.err.
-     *
-     * @param text the error message to display.
-     */
-    private void error(final String text) {
-        System.out.println(filename + ": " + text); //+" on line "+tokenizer.getLine()+", column "+tokenizer.getColumn());
-        JOptionPane.showMessageDialog(null, text, "Error", JOptionPane.ERROR_MESSAGE);
-        numErrors++;
-    }
 
     /**
      * Prints a warning message with the given text.

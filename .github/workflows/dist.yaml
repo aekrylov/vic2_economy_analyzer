@@ -1,0 +1,96 @@
+name: Build dist
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [
+          ubuntu-20.04,
+          macos-latest,
+          windows-2022
+        ]
+      fail-fast: false
+    name: ${{ matrix.os }}
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Install java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17.0.1+12'
+
+      - name: Verify Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Install create-dmg for macOS
+        run: ${{ !startsWith(matrix.os, 'mac') }} || brew install create-dmg
+        shell: bash
+
+      - name: Build image no installer
+        run: ./gradlew --info jpackage -PskipInstaller=true
+
+
+      - name: Build msi
+        run: ./gradlew --info jpackage -PinstallerType=msi
+        if: ${{ matrix.os == 'windows-2022' }}
+
+      - name: Build dmg
+        run: ./gradlew --info jpackage -PinstallerType=dmg
+        if: ${{ startsWith(matrix.os, 'mac') }}
+
+      - name: Build deb
+        run: ./gradlew --info jpackage -PinstallerType=deb
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+
+
+      - name: Upload dmg
+        if: ${{ startsWith(matrix.os, 'mac') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: image-dmg
+          path: build/jpackage/vic2-sgea-1.0.0.dmg
+
+      - name: Upload msi
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: image-msi
+          path: build/jpackage/vic2-sgea-1.0.0.msi
+
+      - name: Upload deb
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: image-deb
+          path: build/jpackage/vic2-sgea*.deb
+
+
+      - name: Upload Linux dist as an artifact
+        uses: actions/upload-artifact@v3
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        with:
+          name: dist-linux
+          path: build/dist
+
+      - name: Upload Mac dist as an artifact
+        uses: actions/upload-artifact@v3
+        if: ${{ startsWith(matrix.os, 'mac') }}
+        with:
+          name: dist-mac
+          path: build/dist
+
+      - name: Upload Windows dist as an artifact
+        uses: actions/upload-artifact@v3
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        with:
+          name: dist-windows
+          path: build/dist
