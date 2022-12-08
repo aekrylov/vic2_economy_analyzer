@@ -38,6 +38,27 @@ jlink {
     launcher {
         name = 'vic2sgea'
     }
+
+    options = [
+            '--compress', '2',
+            '--no-header-files',
+            '--no-man-pages'
+    ]
+
+    jpackage {
+        appVersion = '0.14.0' //todo
+        imageOutputDir = file("$buildDir/dist")
+        imageName = 'Vic2-SGEA'
+        /*if (DefaultNativePlatform.currentOperatingSystem.windows) {
+            icon = "misc/logo.ico"
+        } else if (DefaultNativePlatform.currentOperatingSystem.linux) {
+            icon = "misc/logo.png"
+        } else {
+            icon = "misc/logo.icns"
+        }*/
+        skipInstaller = true
+        applicationName = 'Vic2-SGEA'
+    }
 }
 
 
