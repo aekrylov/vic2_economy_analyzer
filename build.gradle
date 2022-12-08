@@ -27,12 +27,14 @@ if (currentOS.isWindows()) {
 }
 
 javafx {
-    version = "13"
-    modules = ['javafx.controls', 'javafx.graphics', 'javafx.fxml', 'javafx.media']
+    version = "19"
+    modules = ['javafx.controls', 'javafx.fxml']
 }
 
-mainClassName = 'org.victoria2.tools.vic2sgea.gui.Main'
-
+application {
+    mainModule = 'vic2sgea'
+    mainClassName = 'org.victoria2.tools.vic2sgea.gui.Main'
+}
 
 jlink {
     launcher {
