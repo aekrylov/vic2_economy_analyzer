@@ -3,7 +3,7 @@ open module vic2sgea {
     requires javafx.controls;
     requires javafx.fxml;
 
-    requires gson;
+    requires com.google.gson;
     requires supercsv;
     requires supercsv.dozer;
 
