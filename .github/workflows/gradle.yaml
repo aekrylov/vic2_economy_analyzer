@@ -38,18 +38,18 @@ jobs:
         shell: bash
 
       - name: Build image no installer
-        run: ./gradle/gradlew --info jpackage -PskipInstaller=true
+        run: ./gradlew --info jpackage -PskipInstaller=true
 
       - name: Build msi
-        run: ./gradle/gradlew --info jpackage -PinstallerType=msi
+        run: ./gradlew --info jpackage -PinstallerType=msi
         if: ${{ matrix.os == 'windows-2022' }}
 
       - name: Build dmg
-        run: ./gradle/gradlew --info jpackage -PinstallerType=dmg
+        run: ./gradlew --info jpackage -PinstallerType=dmg
         if: ${{ startsWith(matrix.os, 'mac') }}
 
       - name: Build deb
-        run: ./gradle/gradlew --info jpackage -PinstallerType=deb
+        run: ./gradlew --info jpackage -PinstallerType=deb
         if: ${{ startsWith(matrix.os, 'ubuntu') }}
 
       - name: Upload dmg
