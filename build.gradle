@@ -11,20 +11,9 @@ repositories {
     mavenCentral()
 }
 
-def currentOS = DefaultNativePlatform.currentOperatingSystem;
-def suffix = ''
-def platform
-if (currentOS.isWindows()) {
-    platform = 'win'
-} else if (currentOS.isLinux()) {
-    platform = 'linux'
-} else if (currentOS.isMacOsX()) {
-    platform = 'mac'
-    def macArch = System.getProperty ("os.arch");
-    if (macArch == 'aarch64') {
-        suffix = '-aarch64'
-    }
-}
+group = 'org.victoria2.tools'
+version = '0.14-SNAPSHOT'
+description = 'vic2sgea'
 
 javafx {
     version = "19"
@@ -76,10 +65,6 @@ dependencies {
 
     testImplementation 'junit:junit:3.8.1'
 }
-
-group = 'org.victoria2.tools'
-version = '0.14-SNAPSHOT'
-description = 'vic2sgea'
 
 java.sourceCompatibility = JavaVersion.VERSION_17
 java.targetCompatibility = JavaVersion.VERSION_17
