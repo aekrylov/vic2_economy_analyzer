@@ -27,50 +27,11 @@ jobs:
           distribution: 'temurin'
           java-version: '17.0.1+12'
 
-      - name: Echo JAVA_HOME
-        run: echo $JAVA_HOME
       - name: Verify Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
 
-      - name: Install create-dmg for macOS
-        run: ${{ !startsWith(matrix.os, 'mac') }} || brew install create-dmg
-        shell: bash
-
       - name: Build image no installer
         run: ./gradlew --info jpackage -PskipInstaller=true
-
-      - name: Build msi
-        run: ./gradlew --info jpackage -PinstallerType=msi
-        if: ${{ matrix.os == 'windows-2022' }}
-
-      - name: Build dmg
-        run: ./gradlew --info jpackage -PinstallerType=dmg
-        if: ${{ startsWith(matrix.os, 'mac') }}
-
-      - name: Build deb
-        run: ./gradlew --info jpackage -PinstallerType=deb
-        if: ${{ startsWith(matrix.os, 'ubuntu') }}
-
-      - name: Upload dmg
-        uses: actions/upload-artifact@v2
-        with:
-          name: image-dmg
-          path: build/jpackage/vic2-sgea-1.0.0.dmg
-          if-no-files-found: ignore
-
-      - name: Upload msi
-        uses: actions/upload-artifact@v2
-        with:
-          name: image-msi
-          path: build/jpackage/vic2-sgea-1.0.0.msi
-          if-no-files-found: ignore
-
-      - name: Upload deb
-        uses: actions/upload-artifact@v2
-        with:
-          name: image-deb
-          path: build/jpackage/vic2-sgea-1.0.0.deb
-          if-no-files-found: ignore
 
       - name: Upload Linux dist as an artifact
         uses: actions/upload-artifact@v2
@@ -78,7 +39,6 @@ jobs:
         with:
           name: dist-linux
           path: build/dist
-          if-no-files-found: ignore
 
       - name: Upload Mac dist as an artifact
         uses: actions/upload-artifact@v2
@@ -86,7 +46,6 @@ jobs:
         with:
           name: dist-mac
           path: build/dist
-          if-no-files-found: ignore
 
       - name: Upload Windows dist as an artifact
         uses: actions/upload-artifact@v2
@@ -94,4 +53,3 @@ jobs:
         with:
           name: dist-windows
           path: build/dist
-          if-no-files-found: ignore
