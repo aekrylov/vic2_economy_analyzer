@@ -1,0 +1,98 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [
+          ubuntu-20.04,
+          macos-latest,
+          windows-2022
+        ]
+      fail-fast: false
+    name: ${{ matrix.os }}
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+
+      - name: Install java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17.0.1+12'
+
+      - name: Echo JAVA_HOME
+        run: echo $JAVA_HOME
+      - name: Verify Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+
+      - name: Install create-dmg for macOS
+        run: ${{ !startsWith(matrix.os, 'mac') }} || brew install create-dmg
+        shell: bash
+
+      - name: Build image no installer
+        run: ./gradle/gradlew --info jpackage -PskipInstaller=true
+
+      - name: Build msi
+        run: ./gradle/gradlew --info jpackage -PinstallerType=msi
+        if: ${{ matrix.os == 'windows-2022' }}
+
+      - name: Build dmg
+        run: ./gradle/gradlew --info jpackage -PinstallerType=dmg
+        if: ${{ startsWith(matrix.os, 'mac') }}
+
+      - name: Build deb
+        run: ./gradle/gradlew --info jpackage -PinstallerType=deb
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+
+      - name: Upload dmg
+        uses: actions/upload-artifact@v2
+        with:
+          name: image-dmg
+          path: build/jpackage/*.dmg
+          if-no-files-found: ignore
+
+      - name: Upload msi
+        uses: actions/upload-artifact@v2
+        with:
+          name: image-msi
+          path: build/jpackage/*.msi
+          if-no-files-found: ignore
+
+      - name: Upload deb
+        uses: actions/upload-artifact@v2
+        with:
+          name: image-deb
+          path: build/jpackage/*.deb
+          if-no-files-found: ignore
+
+      - name: Upload Linux dist as an artifact
+        uses: actions/upload-artifact@v2
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        with:
+          name: dist-linux
+          path: build/dist
+          if-no-files-found: ignore
+
+      - name: Upload Mac dist as an artifact
+        uses: actions/upload-artifact@v2
+        if: ${{ startsWith(matrix.os, 'mac') }}
+        with:
+          name: dist-mac
+          path: build/dist
+          if-no-files-found: ignore
+
+      - name: Upload Windows dist as an artifact
+        uses: actions/upload-artifact@v2
+        if: ${{ startsWith(matrix.os, 'windows') }}
+        with:
+          name: dist-windows
+          path: build/dist
+          if-no-files-found: ignore
