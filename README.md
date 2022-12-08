@@ -5,12 +5,10 @@ Based on old [Nashetovich's code](http://oldforum.paradoxplaza.com/forum/showthr
 
 ## Usage
 
-1. Install [Java Runtime 8 or newer](https://java.com/download/) if it's not installed
-2. Download jar and bat file from [latest release](https://github.com/aekrylov/vic2_economy_analyzer/releases) into one folder
-3. Run bat file. You can also run jar file directly, but this can lead to "out of memory" error. 
-4. Specify savegame path (also you need to specify game install and mod paths for correct localisation) and press Load. 
+1. Download [the latest release](https://github.com/aekrylov/vic2_economy_analyzer/releases) (standalone or installer)
+2. Run the app (for standalone Windows the exe in root, for standalone Linux the binary in `./bin/`)
 
-Double click on a table row (or single click on a chart item) opens detailed info window.
+Double-click on a table row (or single click on a chart item) opens detailed info window.
 
 Check out project wiki for more info.
 
